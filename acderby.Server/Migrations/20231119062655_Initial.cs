@@ -113,30 +113,6 @@ namespace acderby.Server.Migrations
                         principalColumn: "Id");
                 });
 
-            migrationBuilder.CreateTable(
-                name: "PersonTeam",
-                columns: table => new
-                {
-                    MembersId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    TeamsId = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_PersonTeam", x => new { x.MembersId, x.TeamsId });
-                    table.ForeignKey(
-                        name: "FK_PersonTeam_People_MembersId",
-                        column: x => x.MembersId,
-                        principalTable: "People",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_PersonTeam_Teams_TeamsId",
-                        column: x => x.TeamsId,
-                        principalTable: "Teams",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
             migrationBuilder.CreateIndex(
                 name: "IX_Bouts_AwayTeamId",
                 table: "Bouts",
