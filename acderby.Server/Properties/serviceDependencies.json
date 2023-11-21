@@ -4,6 +4,15 @@
       "type": "secrets",
       "connectionId": "VaultUri"
     },
+    "secrets2": {
+      "type": "secrets",
+      "connectionId": "VaultUri",
+      "dynamicId": null
+    },
+    "mssql1": {
+      "type": "mssql",
+      "connectionId": "ConnectionStrings:ApplicationConnection"
+    },
     "storage1": {
       "type": "storage",
       "connectionId": "BlobStorageConnectionString",
