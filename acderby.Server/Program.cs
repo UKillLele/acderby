@@ -43,11 +43,7 @@ builder.Services.AddAzureClients(x =>
 });
 
 
-
 var app = builder.Build();
-
-app.UseDefaultFiles();
-app.UseStaticFiles();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
@@ -55,15 +51,23 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
-
-app.MapGroup("/api").MapIdentityApi<IdentityUser>();
+else
+{
+    app.UseDefaultFiles();
+}
 
 app.UseHttpsRedirection();
 
+app.UseStaticFiles();
+app.UseRouting();
 app.UseAuthorization();
+app.UseEndpoints(endpoints =>
+{
+    endpoints.MapGroup("/api").MapIdentityApi<IdentityUser>();
 
-app.MapControllers();
+    endpoints.MapControllers();
 
-app.MapFallbackToFile("/index.html");
+    endpoints.MapFallbackToFile("/index.html");
+});
 
 app.Run();
