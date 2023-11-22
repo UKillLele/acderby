@@ -156,9 +156,6 @@ namespace acderby.Server.Migrations
                 name: "Bouts");
 
             migrationBuilder.DropTable(
-                name: "PersonTeam");
-
-            migrationBuilder.DropTable(
                 name: "Sponsors");
 
             migrationBuilder.DropTable(

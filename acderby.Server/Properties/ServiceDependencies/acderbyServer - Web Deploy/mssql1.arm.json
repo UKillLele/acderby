@@ -36,7 +36,7 @@
     },
     {
       "type": "Microsoft.Resources/deployments",
-      "name": "[concat(parameters('resourceGroupName'), 'Deployment', uniqueString(concat('acderbyServervault', subscription().subscriptionId)))]",
+      "name": "[concat(parameters('resourceGroupName'), 'Deployment', uniqueString(concat('acderby.Server_db', subscription().subscriptionId)))]",
       "resourceGroup": "[parameters('resourceGroupName')]",
       "apiVersion": "2019-10-01",
       "dependsOn": [
@@ -49,22 +49,26 @@
           "contentVersion": "1.0.0.0",
           "resources": [
             {
-              "name": "acderbyServervault",
-              "type": "Microsoft.KeyVault/vaults",
+              "kind": "v12.0",
               "location": "[parameters('resourceLocation')]",
-              "properties": {
-                "sku": {
-                  "family": "A",
-                  "name": "Standard"
-                },
-                "tenantId": "c76a8c3f-f0f7-4ef9-9843-108a65b2ae8d",
-                "accessPolicies": [],
-                "enabledForDeployment": true,
-                "enabledForDiskEncryption": true,
-                "enabledForTemplateDeployment": true,
-                "softDeleteRetentionInDays": 90
+              "name": "acderbydbserver",
+              "type": "Microsoft.Sql/servers",
+              "apiVersion": "2017-10-01-preview"
+            },
+            {
+              "sku": {
+                "name": "Standard",
+                "tier": "Standard",
+                "capacity": 10
               },
-              "apiVersion": "2016-10-01"
+              "kind": "v12.0,user",
+              "location": "[parameters('resourceLocation')]",
+              "name": "acderbydbserver/acderby.Server_db",
+              "type": "Microsoft.Sql/servers/databases",
+              "apiVersion": "2017-10-01-preview",
+              "dependsOn": [
+                "acderbydbserver"
+              ]
             }
           ]
         }
@@ -72,6 +76,6 @@
     }
   ],
   "metadata": {
-    "_dependencyType": "secrets.keyVault"
+    "_dependencyType": "mssql.azure"
   }
 }

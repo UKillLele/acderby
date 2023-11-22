@@ -8,6 +8,14 @@
       "connectionId": "VaultUri",
       "dynamicId": null
     },
+    "mssql1": {
+      "serviceConnectorResourceId": "/subscriptions/[parameters('subscriptionId')]/resourceGroups/[parameters('resourceGroupName')]/providers/Microsoft.Web/sites/acderbyServer/providers/Microsoft.ServiceLinker/linkers/ConnectionStringsApplicationConnection_ED831C1804",
+      "secretStore": "AzureKeyVault",
+      "resourceId": "/subscriptions/[parameters('subscriptionId')]/resourceGroups/[parameters('resourceGroupName')]/providers/Microsoft.Sql/servers/acderbydbserver/databases/acderby.Server_db",
+      "type": "mssql.azure",
+      "connectionId": "ConnectionStrings:ApplicationConnection",
+      "dynamicId": null
+    },
     "storage1": {
       "serviceConnectorResourceId": "/subscriptions/[parameters('subscriptionId')]/resourceGroups/[parameters('resourceGroupName')]/providers/Microsoft.Web/sites/acderbyServer/providers/Microsoft.ServiceLinker/linkers/BlobStorageConnectionString_78441AB87A, /subscriptions/42cee7c2-64aa-4315-8da3-e4727f81c17b/resourceGroups/acderby/providers/Microsoft.Web/sites/acderbyServer/providers/Microsoft.ServiceLinker/linkers/BlobStorageConnectionString_C8B47BFC73",
       "secretStore": "AzureKeyVault",
@@ -16,13 +24,9 @@
       "connectionId": "BlobStorageConnectionString",
       "dynamicId": null
     },
-    "mssql1": {
-      "serviceConnectorResourceId": "/subscriptions/[parameters('subscriptionId')]/resourceGroups/[parameters('resourceGroupName')]/providers/Microsoft.Web/sites/acderbyServer/providers/Microsoft.ServiceLinker/linkers/ConnectionStringsApplicationConnection_ED831C1804",
-      "secretStore": "AzureKeyVault",
-      "resourceId": "/subscriptions/[parameters('subscriptionId')]/resourceGroups/[parameters('resourceGroupName')]/providers/Microsoft.Sql/servers/acderbydbserver/databases/acderby.Server_db",
-      "type": "mssql.azure",
-      "connectionId": "ConnectionStrings:ApplicationConnection",
-      "dynamicId": null
+    "apis1": {
+      "ignored": "true",
+      "type": "apis.azure"
     }
   }
 }

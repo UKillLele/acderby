@@ -199,7 +199,7 @@ const Players = () => {
                             </Container>
                         </Form>
                     </Col>
-                    {players && players.map((skater: Person) =>
+                    {players.length > 0 && players.map((skater: Person) =>
                         <Col xs lg="3" key={skater.id} className="text-center">
                             <Image className="skater-image" src={skater.imageUrl} />
                             <Container className="mt-0 border bg-dark rounded">
