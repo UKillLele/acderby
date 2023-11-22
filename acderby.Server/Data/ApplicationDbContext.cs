@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Design;
 
 namespace acderby.Server.Data
 {
@@ -11,14 +12,6 @@ namespace acderby.Server.Data
             : base(options)
         {
 
-        }
-
-        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-        {
-            if (!optionsBuilder.IsConfigured)
-            {
-                optionsBuilder.UseSqlServer("Server=tcp:acderbydbserver.database.windows.net,1433;Initial Catalog=acderby.Server_db;Persist Security Info=False;User ID=acrdmarketing;Password=Ass20Ass22!!;MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;");
-            }
         }
 
         public DbSet<Bout> Bouts { get; set; }
@@ -33,6 +26,16 @@ namespace acderby.Server.Data
             modelBuilder.Entity<Person>();
             modelBuilder.Entity<Sponsor>();
             modelBuilder.Entity<Team>();
+        }
+    }
+    public class ApplicationDbContextFactory : IDesignTimeDbContextFactory<ApplicationDbContext>
+    {
+        public ApplicationDbContext CreateDbContext(string[] args)
+        {
+            var optionsBuilder = new DbContextOptionsBuilder<ApplicationDbContext>();
+            optionsBuilder.UseSqlServer("Server=tcp:acderbydbserver.database.windows.net,1433;Initial Catalog=acderby.Server_db;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;Authentication=\"Active Directory Default\";");
+
+            return new ApplicationDbContext(optionsBuilder.Options);
         }
     }
 }
