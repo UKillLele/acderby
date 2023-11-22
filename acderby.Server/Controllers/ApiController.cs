@@ -1,8 +1,6 @@
 ﻿using acderby.Server.Data;
 using acderby.Server.Models;
 using acderby.Server.ViewModels;
-using Azure.Core.Extensions;
-using Azure.Identity;
 using Azure.Storage.Blobs;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
