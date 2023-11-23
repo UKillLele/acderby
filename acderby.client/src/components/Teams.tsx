@@ -13,11 +13,11 @@ const Teams = () => {
     const benchCoach: Person = team.positions.find(x => x.type === PositionType.benchCoach)?.person as Person;
     const members: Person[] = team.positions
         .filter(x => x.type === PositionType.member)
-        .map(x => x.person)
+        .map(x => x.person!)
         .sort((a: Person, b: Person) => {
             if (a.number && b.number) return a.number > b.number ? 1 : -1
-            else if (!a.number && !b.number) a.name > b.name ? 1 : -1
-            else a.number ? 1 : -1
+            else if (!a.number && !b.number) return a.name > b.name ? 1 : -1
+            else return a.number ? 1 : -1
         }) as Person[];
 
     function getImage(imgUrl: string) {
