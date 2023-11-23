@@ -28,8 +28,8 @@ const Players = () => {
 
     useEffect(() => {
         refreshPlayers();
-        fetch('/api/teams').then(response => response.json()).then((resp) => {
-            setTeams(resp);
+        fetch('/api/teams').then(response => response.json()).then((resp: Team[]) => {
+            setTeams(resp.sort((a, b) => a.name > b.name ? 1 : -1));
         });
     }, []);
 
