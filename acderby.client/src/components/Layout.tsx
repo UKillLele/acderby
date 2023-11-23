@@ -72,11 +72,6 @@ const Layout = () => {
                 </Container>
             </Navbar>
             <Outlet />
-            <footer className="text-bg-dark fixed-bottom">
-                <Container>
-                    Sponsors:
-                </Container>
-            </footer>
         </>
     )
 }

@@ -47,11 +47,7 @@ const router = createBrowserRouter(createRoutesFromElements(
         <Route path="/season" element={<SeasonSchedule />} />
         <Route path="/login" element={<Login />} />
         <Route element={<EditorRoutes />} >
-            <Route
-                path="/players"
-                element={<Players />}
-                loader={async () => { return fetch('/api/players') }}
-            />
+            <Route path="/players" element={<Players />} />
         </Route>
         <Route path="*" element={<NotFound />} />
     </Route>

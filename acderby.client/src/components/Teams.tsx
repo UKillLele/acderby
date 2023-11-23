@@ -9,38 +9,78 @@ const Teams = () => {
     const team: Team = useLoaderData() as Team;
     const captain: Person = team.positions.find(x => x.type === PositionType.captain)?.person as Person;
     const coCaptain: Person = team.positions.find(x => x.type === PositionType.coCaptain)?.person as Person;
-    const members: Person[] = team.positions.filter(x => x.type === PositionType.member).map(x => x.person) as Person[];
+    const headCoach: Person = team.positions.find(x => x.type === PositionType.headCoach)?.person as Person;
+    const benchCoach: Person = team.positions.find(x => x.type === PositionType.benchCoach)?.person as Person;
+    const members: Person[] = team.positions.filter(x => x.type === PositionType.member).map(x => x.person).sort((a, b) => a!.number.toString()! > b!.number.toString()! ? 1 : -1) as Person[];
+
+    function getImage(imgUrl: string) {
+        if (imgUrl) return imgUrl;
+        return team.defaultSkaterImage;
+    }
 
     return (
-        <Container fluid className="content text-light text-shadow" style={{ backgroundColor: team.color }}>
-            <Container>
-                <h1 className="fs-1 text-center my-5">{team.name}</h1>
-                <p className="text-center">{team.description}</p>
-                <Row className="captians justify-content-center mt-5">
-                    <Col xs lg="4" className="text-center">
-                        <Image className="skater-image" src={captain?.imageUrl} />
-                        <div className="mt-0 border bg-dark rounded">
-                            <p className="fs-3 m-0">#{captain?.number} - {captain?.name}</p>
-                            <p className="fs-3 m-0">Captain</p>
-                        </div>
-                    </Col>
-                    <Col xs lg="4" className="text-center">
-                        <Image className="skater-image" src={coCaptain?.imageUrl} />
-                        <div className="mt-0 border bg-dark rounded">
-                            <p className="fs-3 m-0">#{coCaptain?.number} - {coCaptain?.name}</p>
-                            <p className="fs-3 m-0">Co-Captain</p>
-                        </div>
-                    </Col>
+        <Container fluid className="content text-light" style={{ backgroundColor: team.color }}>
+            <Container fluid className="px-0">
+                <Row className="header-img px-lg-5 mx-0" style={{ backgroundImage: team.imageUrl && `url(${team.imageUrl}` }}>
+                    <Row>
+                        <Col className="my-auto">
+                            <h1 className="xl-title my-5 text-shadow">{team.name}</h1>
+                        </Col>
+                        <Col xs lg="auto">
+                            <Image src={`/images/${team.logoUrl}`} className="skater-image p-5" />
+                        </Col>
+                    </Row>
+                    {team.description && <p className="text-center bg-white rounded text-black p-3">{team.description}</p>}
                 </Row>
-                <Row className="justify-content-center mt-5">
-                    {members && members.map((skater: Person) =>
-                        <Col xs lg="3" key={skater.id} className="text-center">
-                            <Image className="skater-image" src={skater.imageUrl} />
+                <Row className="justify-content-center px-5">
+                    {captain &&
+                        <Col xs lg="4" className="text-center mt-5">
+                            <Image className="skater-image" src={getImage(captain.imageUrl)} />
                             <div className="mt-0 border bg-dark rounded">
-                                <p className="fs-3 m-0">#{skater.number} - {skater.name}</p>
+                                <p className="fs-3 m-0">#{captain.number} -  <span className="text-nowrap">{captain.name}</span></p>
+                                <p className="fs-3 m-0">Captain</p>
+                            </div>
+                        </Col>
+                    }
+                    {coCaptain &&
+                        <Col xs lg="4" className="text-center mt-5">
+                            <Image className="skater-image" src={coCaptain.imageUrl?.length > 0 ? coCaptain.imageUrl : team.defaultSkaterImage} />
+                            <div className="mt-0 border bg-dark rounded">
+                                <p className="fs-3 m-0">#{coCaptain.number} - <span className="text-nowrap">{coCaptain.name}</span></p>
+                                <p className="fs-3 m-0">Co-Captain</p>
+                            </div>
+                        </Col>
+                    }
+                </Row>
+                <Row className="justify-content-center px-5">
+                    {members && members.map((skater: Person) =>
+                        <Col xs lg="3" key={skater.id} className="text-center mt-5">
+                            <Image className="skater-image" src={skater.imageUrl?.length > 0 ? skater.imageUrl : team.defaultSkaterImage} />
+                            <div className="mt-0 border bg-dark rounded">
+                                <p className="fs-3 m-0">#{skater.number} - <span className="text-nowrap">{skater.name}</span></p>
                             </div>
                         </Col>
                     )}
+                </Row>
+                <Row className="justify-content-center px-5">
+                    {headCoach &&
+                        <Col xs lg="4" className="text-center mt-5">
+                            <Image className="skater-image" src={headCoach.imageUrl?.length > 0 ? headCoach.imageUrl : team.defaultSkaterImage} />
+                            <div className="mt-0 border bg-dark rounded">
+                                <p className="fs-3 m-0">{headCoach.number && <span>#{headCoach.number} - </span>}<span className="text-nowrap">{headCoach.name}</span></p>
+                                <p className="fs-3 m-0">Head Coach</p>
+                            </div>
+                        </Col>
+                    }
+                    {benchCoach &&
+                        <Col xs lg="4" className="text-center mt-5">
+                            <Image className="skater-image" src={benchCoach.imageUrl?.length > 0 ? benchCoach.imageUrl : team.defaultSkaterImage} />
+                            <div className="mt-0 border bg-dark rounded">
+                                <p className="fs-3 m-0">{benchCoach.number && <span>#{benchCoach.number} - </span>}<span className="text-nowrap">{benchCoach.name}</span></p>
+                                <p className="fs-3 m-0">Bench Coach</p>
+                            </div>
+                        </Col>
+                    }
                 </Row>
             </Container>
         </Container>

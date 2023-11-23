@@ -16,5 +16,6 @@ namespace acderby.Server.Models
         public int? SeasonWins { get; set; }
         public int? SeasonLosses { get; set; }
         public int? Ranking { get; set; }
+        public Uri? DefaultSkaterImage { get; set; }
     }
 }

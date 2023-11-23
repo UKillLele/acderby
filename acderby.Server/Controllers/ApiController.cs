@@ -74,6 +74,18 @@ namespace acderby.Server.Controllers
                 Name = person.Name,
                 Number = person.Number,
             };
+            if (person.ImageFile?.Length > 0)
+            {
+                using var ms = new MemoryStream();
+                person.ImageFile.CopyTo(ms);
+                ms.Position = 0;
+
+                BlobClient blobClient = _blobContainerClient.GetBlobClient($"{person.Name}.png");
+                await blobClient.UploadAsync(ms, true);
+                newPerson.ImageUrl = blobClient.Uri;
+            }
+            await _context.People.AddAsync(newPerson);
+            await _context.SaveChangesAsync();
 
             if (person.Positions != null)
             {
@@ -94,18 +106,6 @@ namespace acderby.Server.Controllers
                     await _context.SaveChangesAsync();
                 }
             };
-            if (person.ImageFile?.Length > 0)
-            {
-                using var ms = new MemoryStream();
-                person.ImageFile.CopyTo(ms);
-                ms.Position = 0;
-
-                BlobClient blobClient = _blobContainerClient.GetBlobClient($"{person.Name}.png");
-                await blobClient.UploadAsync(ms, true);
-                newPerson.ImageUrl = blobClient.Uri;
-            }
-            await _context.People.AddAsync(newPerson);
-            await _context.SaveChangesAsync();
             return Ok();
         }
 

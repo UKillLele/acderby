@@ -5,10 +5,11 @@ export default interface Team {
     name: string,
     description: string,
     positions: Position[],
-    photoUrl: string,
+    imageUrl: string,
     logoUrl: string,
     color: string,
     seasonWins: number,
     seasonLosses: number,
-    ranking: number
+    ranking: number,
+    defaultSkaterImage: string
 }

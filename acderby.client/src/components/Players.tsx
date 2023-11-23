@@ -1,12 +1,11 @@
 import { Container, Row, Col, Form, Image, Button, Spinner } from 'react-bootstrap';
 import { Person } from '../models/Person';
-import { useLoaderData } from 'react-router-dom';
 import { ChangeEvent, FormEvent, useEffect, useState } from 'react';
 import { GetPositionDisplayName, GetPositionsArray, Position, PositionType } from '../models/Position';
 import Team from '../models/Team';
 
 const Players = () => {
-    const players = useLoaderData() as Person[];
+    const [players, setPlayers] = useState<Person[]>([]);
 
     const [name, setName] = useState("");
     const [number, setNumber] = useState<number | null>();
@@ -28,6 +27,7 @@ const Players = () => {
     const [teams, setTeams] = useState<Team[]>([]);
 
     useEffect(() => {
+        refreshPlayers();
         fetch('/api/teams').then(response => response.json()).then((resp) => {
             setTeams(resp);
         });
@@ -106,7 +106,6 @@ const Players = () => {
         if (files) {
             setImageFile(files[0])
             setImage(URL.createObjectURL(files[0]));
-            target.parentElement?.classList.add("d-none");
         }
     }
 
@@ -116,7 +115,6 @@ const Players = () => {
         if (files) {
             setUpdatingImageFile(files[0])
             setUpdatingImage(URL.createObjectURL(files[0]));
-            target.parentElement?.classList.add("d-none");
         }
     }
 
@@ -168,7 +166,7 @@ const Players = () => {
             body: formData
         }).then((resp) => {
             if (resp.status === 200) {
-                setUpdateLoading(false);
+                clearUpdating();
             }
             else console.log(resp.statusText);
         },
@@ -198,6 +196,7 @@ const Players = () => {
         setPositions([]);
         setTempPosition({ teamId: "", type: 0 });
         setAddLoading(false);
+        refreshPlayers();
     }
 
     function clearUpdating() {
@@ -209,6 +208,13 @@ const Players = () => {
         setUpdatingPositions([]);
         setTempUpdatingPosition({ teamId: "", type: 0 });
         setUpdateLoading(false);
+        refreshPlayers();
+    }
+
+    function refreshPlayers() {
+        return fetch('api/players').then((resp) => resp.json()).then((resp) => {
+            setPlayers(resp.sort((a: Person, b: Person) => a!.number.toString()! > b!.number.toString()! ? 1 : -1));
+        });
     }
 
     return (
@@ -220,7 +226,7 @@ const Players = () => {
                             <Form.Group
                                 controlId="image"
                                 onClick={() => onAddImageClick("image")}
-                                className="skater-image d-flex flex-column justify-content-center align-items-center border cursor-pointer bg-white">
+                                className={`skater-image d-flex flex-column justify-content-center align-items-center border cursor-pointer bg-white ${image == "" ? 'd-flex' : 'd-none'}`}>
                                 <Button
                                     className="rounded-circle"
                                     variant="outline-dark"
@@ -340,7 +346,7 @@ const Players = () => {
                         updatingId !== skater.id ?
                         <Col xs lg="3" className="mb-3" onClick={() => onPlayerClick(skater)}>
                             {skater.imageUrl ?
-                                <Image className="skater-image" src={skater.imageUrl} />
+                                <Image className="skater-image cursor-pointer" src={skater.imageUrl} />
                             :
                                 <div className="skater-image d-flex flex-column justify-content-center align-items-center border cursor-pointer bg-white">
                                     <Button
@@ -354,8 +360,8 @@ const Players = () => {
                                 </div>
                             }
                             <Container className="mt-0 border bg-dark rounded">
-                                <Row>
-                                    <p className="fs-3 m-0 text-center">#{skater.number} - {skater.name}</p>
+                                    <Row>
+                                        <p className="fs-3 m-0 text-center">#{skater.number} - <span className="text-nowrap">{skater.name}</span></p>
                                 </Row>
                                 {skater.positions && skater.positions.map((position: Position) =>
                                     <Row key={`${skater.id}-${position.team?.id}`}>
@@ -370,7 +376,7 @@ const Players = () => {
                                 <Form.Group
                                     controlId="updateImage"
                                     onClick={() => onAddImageClick("updateImage")}
-                                    className={`skater-image flex-column justify-content-center align-items-center border cursor-pointer bg-white ${updatingImage == null ? 'd-flex': 'd-none'}`}
+                                    className={`skater-image flex-column justify-content-center align-items-center border cursor-pointer bg-white ${updatingImage == "" ? 'd-flex': 'd-none'}`}
                                 >
                                     <Button
                                         className="rounded-circle"

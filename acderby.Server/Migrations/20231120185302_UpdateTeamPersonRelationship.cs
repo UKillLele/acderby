@@ -24,7 +24,7 @@ namespace acderby.Server.Migrations
                 table: "Teams");
 
             migrationBuilder.CreateTable(
-                name: "Position",
+                name: "Positions",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
@@ -36,13 +36,13 @@ namespace acderby.Server.Migrations
                 {
                     table.PrimaryKey("PK_Position", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Position_People_PersonId",
+                        name: "FK_Positions_People_PersonId",
                         column: x => x.PersonId,
                         principalTable: "People",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_Position_Teams_TeamId",
+                        name: "FK_Positions_Teams_TeamId",
                         column: x => x.TeamId,
                         principalTable: "Teams",
                         principalColumn: "Id",
@@ -50,13 +50,13 @@ namespace acderby.Server.Migrations
                 });
 
             migrationBuilder.CreateIndex(
-                name: "IX_Position_PersonId",
-                table: "Position",
+                name: "IX_Positions_PersonId",
+                table: "Positions",
                 column: "PersonId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Position_TeamId",
-                table: "Position",
+                name: "IX_Positions_TeamId",
+                table: "Positions",
                 column: "TeamId");
         }
 
@@ -64,7 +64,7 @@ namespace acderby.Server.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "Position");
+                name: "Positions");
 
             migrationBuilder.AddColumn<Guid>(
                 name: "CaptainId",

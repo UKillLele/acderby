@@ -2,21 +2,27 @@
 
 .navbar {
     position: absolute;
-    width: 100vw;
+    width: 100%;
     background-color: rgb(0, 0, 0, 0.75);
 }
 
 .content {
     padding-top: 140px;
-    height: 100vh;
-    overflow-y: auto;
-    overflow-x: hidden;
+    height: 100%;
     padding-bottom: 50px;
 }
 
 .bg-img {
     background-position: center;
     background-size: cover;
+    height: 100vh;
+}
+
+.header-img {
+    background-position: top;
+    background-size: cover;
+    margin-top: -140px;
+    padding-top: 140px;
 }
 
 .text-shadow {
@@ -25,4 +31,8 @@
 
 .cursor-pointer {
     cursor: pointer;
+}
+
+.xl-title {
+    font-size: 5rem;
 }

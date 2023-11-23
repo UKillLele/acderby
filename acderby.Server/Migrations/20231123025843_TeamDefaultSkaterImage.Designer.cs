@@ -12,8 +12,8 @@ using acderby.Server.Data;
 namespace acderby.Server.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20231122231147_Positions")]
-    partial class Positions
+    [Migration("20231123025843_TeamDefaultSkaterImage")]
+    partial class TeamDefaultSkaterImage
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -351,6 +351,9 @@ namespace acderby.Server.Migrations
 
                     b.Property<string>("Color")
                         .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("DefaultSkaterImage")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Description")
