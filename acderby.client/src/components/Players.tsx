@@ -8,7 +8,7 @@ const Players = () => {
     const [players, setPlayers] = useState<Person[]>([]);
 
     const [name, setName] = useState("");
-    const [number, setNumber] = useState<number | null>();
+    const [number, setNumber] = useState("");
     const [imageFile, setImageFile] = useState<File>();
     const [image, setImage] = useState("");
     const [positions, setPositions] = useState<{ teamId: string; type: number }[]>([]);
@@ -17,7 +17,7 @@ const Players = () => {
 
     const [updatingName, setUpdatingName] = useState("");
     const [updatingId, setUpdatingId] = useState("");
-    const [updatingNumber, setUpdatingNumber] = useState<number | null>();
+    const [updatingNumber, setUpdatingNumber] = useState("");
     const [updatingImage, setUpdatingImage] = useState("");
     const [updatingImageFile, setUpdatingImageFile] = useState<File>();
     const [updatingPositions, setUpdatingPositions] = useState<{ teamId: string; type: number }[]>([]);
@@ -130,7 +130,7 @@ const Players = () => {
 
         const formData = new FormData();
         formData.append("Name", name);
-        formData.append("Number", number?.toString() ?? "");
+        formData.append("Number", number.toString() ?? "");
         formData.append("ImageFile", imageFile ?? "");
         formData.append("Positions", JSON.stringify(positions));
 
@@ -157,7 +157,7 @@ const Players = () => {
         const formData = new FormData();
         formData.append("Id", updatingId);
         formData.append("Name", updatingName);
-        formData.append("Number", updatingNumber?.toString() ?? "");
+        formData.append("Number", updatingNumber.toString() ?? "");
         formData.append("ImageFile", updatingImageFile ?? "");
         formData.append("Positions", JSON.stringify(updatingPositions));
 
@@ -190,7 +190,7 @@ const Players = () => {
 
     function clearAdding() {
         setName("");
-        setNumber(null);
+        setNumber("");
         setImage("");
         setImageFile(undefined);
         setPositions([]);
@@ -202,7 +202,7 @@ const Players = () => {
     function clearUpdating() {
         setUpdatingId("");
         setUpdatingName("");
-        setUpdatingNumber(null);
+        setUpdatingNumber("");
         setUpdatingImage("");
         setUpdatingImageFile(undefined);
         setUpdatingPositions([]);
@@ -213,7 +213,11 @@ const Players = () => {
 
     function refreshPlayers() {
         return fetch('api/players').then((resp) => resp.json()).then((resp) => {
-            setPlayers(resp.sort((a: Person, b: Person) => a!.number.toString()! > b!.number.toString()! ? 1 : -1));
+            setPlayers(resp.sort((a: Person, b: Person) => {
+                if (a.number && b.number) return a.number > b.number ? 1 : -1
+                else if (!a.number && !b.number) a.name > b.name ? 1 : -1 
+                else a.number ? 1 : -1
+            }));
         });
     }
 
@@ -258,8 +262,9 @@ const Players = () => {
                                             <Form.Control
                                                 name="number"
                                                 value={number ?? ""}
-                                                onChange={(event) => setNumber(Number(event.target.value))}
-                                                type="number"
+                                                onChange={(event) => setNumber(event.target.value)}
+                                                type="string"
+                                                pattern="[0-9]*"
                                                 placeholder="#"
                                             />
                                         </Form.Group>
@@ -344,7 +349,7 @@ const Players = () => {
                     </Col>
                     {players.length > 0 && players.map((skater: Person) =>
                         updatingId !== skater.id ?
-                        <Col xs lg="3" className="mb-3" onClick={() => onPlayerClick(skater)}>
+                        <Col key={skater.id} xs lg="3" className="mb-3" onClick={() => onPlayerClick(skater)}>
                             {skater.imageUrl ?
                                 <Image className="skater-image cursor-pointer" src={skater.imageUrl} />
                             :
@@ -408,8 +413,9 @@ const Players = () => {
                                                 <Form.Control
                                                     name="updateNumber"
                                                     value={updatingNumber!}
-                                                    onChange={(event) => setUpdatingNumber(Number(event.target.value))}
-                                                    type="number"
+                                                    onChange={(event) => setUpdatingNumber(event.target.value)}
+                                                    type="string"
+                                                    pattern="[0-9]*"
                                                     placeholder="#"
                                                 />
                                             </Form.Group>

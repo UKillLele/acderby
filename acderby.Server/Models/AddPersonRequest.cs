@@ -3,7 +3,7 @@
     public class AddPersonRequest
     {
         public string Name { get; set; } = string.Empty;
-        public int Number {  get; set; }
+        public string? Number {  get; set; }
         public IFormFile? ImageFile { get; set; }
         public string Positions { get; set; } = string.Empty;
     }

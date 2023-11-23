@@ -6,7 +6,7 @@ namespace acderby.Server.ViewModels
     {
         public Guid Id { get; set; } = person.Id;
         public string Name { get; set; } = person.Name;
-        public int? Number { get; set; } = person.Number;
+        public string? Number { get; set; } = person.Number;
         public Uri? ImageUrl { get; set; } = person.ImageUrl;
         public List<PersonPositionViewModel> Positions { get; set; } = person.Positions.Select(x => new PersonPositionViewModel(x)).ToList();
     }

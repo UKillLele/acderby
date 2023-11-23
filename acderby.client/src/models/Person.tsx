@@ -3,7 +3,7 @@ import { Position } from "./Position";
 export interface Person {
     id: string,
     name: string,
-    number: number,
+    number: string,
     imageUrl: string,
     positions: Position[]
 }

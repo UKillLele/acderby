@@ -72,8 +72,8 @@ namespace acderby.Server.Controllers
             {
                 Id = Guid.NewGuid(),
                 Name = person.Name,
-                Number = person.Number,
-            };
+                Number = person.Number
+            }; 
             if (person.ImageFile?.Length > 0)
             {
                 using var ms = new MemoryStream();
