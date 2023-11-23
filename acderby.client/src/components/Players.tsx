@@ -218,7 +218,7 @@ const Players = () => {
     }
 
     return (
-        <Container fluid className="content text-light text-shadow bg-secondary vh-100">
+        <Container fluid className="content text-light text-shadow bg-secondary">
             <Container>
                 <Row className="mt-5">
                     <Col xs lg="3" className="text-center mb-3">
@@ -376,7 +376,7 @@ const Players = () => {
                                 <Form.Group
                                     controlId="updateImage"
                                     onClick={() => onAddImageClick("updateImage")}
-                                    className={`skater-image flex-column justify-content-center align-items-center border cursor-pointer bg-white ${updatingImage == "" ? 'd-flex': 'd-none'}`}
+                                    className={`skater-image flex-column justify-content-center align-items-center border cursor-pointer bg-white ${updatingImage == "" ? 'd-none': 'd-flex'}`}
                                 >
                                     <Button
                                         className="rounded-circle"
