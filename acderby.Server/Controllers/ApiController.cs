@@ -18,6 +18,7 @@ namespace acderby.Server.Controllers
         private readonly ApplicationDbContext _context;
         private readonly IHttpContextAccessor _contextAccessor;
         private readonly BlobContainerClient _blobContainerClient;
+        private readonly JsonSerializerOptions _jsonOptions = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
 
         public ApiController(ILogger<ApiController> logger, ApplicationDbContext context, IHttpContextAccessor contextAccessor, BlobServiceClient blobServiceClient)
         {
@@ -76,8 +77,7 @@ namespace acderby.Server.Controllers
 
             if (person.Positions != null)
             {
-                List<Position> positions = [];
-                var p = JsonSerializer.Deserialize<List<PositionRequest>>(person.Positions);
+                var p = JsonSerializer.Deserialize<List<PositionRequest>>(person.Positions, _jsonOptions);
                 if (p != null)
                 {
                     foreach (var item in p)
@@ -89,10 +89,10 @@ namespace acderby.Server.Controllers
                             Type = item.Type,
                             Team = _context.Teams.FirstOrDefault(x => x.Id == item.TeamId)
                         };
-                        positions.Add(position);
+                        await _context.Positions.AddAsync(position);
                     }
+                    await _context.SaveChangesAsync();
                 }
-                newPerson.Positions = positions;
             };
             if (person.ImageFile?.Length > 0)
             {
@@ -104,9 +104,64 @@ namespace acderby.Server.Controllers
                 await blobClient.UploadAsync(ms, true);
                 newPerson.ImageUrl = blobClient.Uri;
             }
-            _context.People.Add(newPerson);
-            _context.SaveChanges();
+            await _context.People.AddAsync(newPerson);
+            await _context.SaveChangesAsync();
             return Ok();
+        }
+
+        [HttpPut]
+        [Route("updatePerson")]
+        [Authorize]
+        public async Task<ActionResult> UpdatePerson([FromForm] UpdatePersonRequest person)
+        {
+            if (_context.People.Single(x => x.Id == person.Id) is Person existingPerson)
+            {
+                existingPerson.Name = person.Name;
+                existingPerson.Number = person.Number;
+
+                if (person.ImageFile?.Length > 0)
+                {
+                    using var ms = new MemoryStream();
+                    person.ImageFile.CopyTo(ms);
+                    ms.Position = 0;
+
+                    BlobClient blobClient = _blobContainerClient.GetBlobClient($"{person.Name}.png");
+                    await blobClient.UploadAsync(ms, true);
+                    existingPerson.ImageUrl = blobClient.Uri;
+                }
+                if (person.Positions != null)
+                {
+                    var p = JsonSerializer.Deserialize<List<PositionRequest>>(person.Positions, _jsonOptions);
+                    if (p != null)
+                    {
+                        var existingPositions = _context.Positions.Where(x => x.Person!.Id.Equals(person.Id));
+                        foreach (var item in p)
+                        {
+                            // update position if type changed
+                            var position = existingPositions.FirstOrDefault(x => x.Team!.Id.Equals(item.TeamId));
+                            if (position != null)
+                            {
+                                if (!position.Type.Equals(item.Type)) position.Type = item.Type;
+                            }
+                            else // create position
+                            {
+                                var newPosition = new Position 
+                                { 
+                                    Id = Guid.NewGuid(),
+                                    Person = existingPerson,
+                                    Type = item.Type,
+                                    Team = _context.Teams.Single(x => x.Id.Equals(item.TeamId))
+                                };
+                                await _context.Positions.AddAsync(newPosition);
+                            }
+                        }
+                        await _context.SaveChangesAsync();
+                    }
+                };
+                await _context.SaveChangesAsync();
+                return Ok();
+            }
+            return BadRequest("Person does not exist in database");
         }
 
         [HttpGet]
@@ -133,6 +188,19 @@ namespace acderby.Server.Controllers
             return Ok(players);
         }
 
-
+        [HttpPost]
+        [Route("deletePerson")]
+        [Authorize(Roles = ("Admin, Editor"))]
+        public async Task<ActionResult> DeletePlayer([FromForm] Guid id)
+        {
+            var person = await _context.People.FindAsync(id);
+            if (person != null)
+            {
+                _context.People.Remove(person);
+                await _context.SaveChangesAsync();
+                return Ok();
+            }
+            return BadRequest("Person does not exist in database");
+        }
     }
 }

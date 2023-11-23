@@ -8,8 +8,11 @@ using Microsoft.Extensions.Azure;
 
 var builder = WebApplication.CreateBuilder(args);
 
-var keyVaultEndpoint = new Uri(Environment.GetEnvironmentVariable("VaultUri")!);
-builder.Configuration.AddAzureKeyVault(keyVaultEndpoint, new DefaultAzureCredential());
+if (builder.Environment.IsProduction())
+{
+    var keyVaultEndpoint = new Uri(Environment.GetEnvironmentVariable("VaultUri")!);
+    builder.Configuration.AddAzureKeyVault(keyVaultEndpoint, new DefaultAzureCredential());
+}
 
 // Add services to the container.
 
@@ -61,13 +64,8 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseRouting();
 app.UseAuthorization();
-app.UseEndpoints(endpoints =>
-{
-    endpoints.MapGroup("/api").MapIdentityApi<IdentityUser>();
-
-    endpoints.MapControllers();
-
-    endpoints.MapFallbackToFile("/index.html");
-});
+app.MapGroup("/api").MapIdentityApi<IdentityUser>();
+app.MapControllers();
+app.MapFallbackToFile("/index.html");
 
 app.Run();

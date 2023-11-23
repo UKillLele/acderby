@@ -18,6 +18,7 @@ namespace acderby.Server.Data
         public DbSet<Person> People { get; set; }
         public DbSet<Sponsor> Sponsors { get; set; }
         public DbSet<Team> Teams { get; set; }
+        public DbSet<Position> Positions { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -26,6 +27,7 @@ namespace acderby.Server.Data
             modelBuilder.Entity<Person>();
             modelBuilder.Entity<Sponsor>();
             modelBuilder.Entity<Team>();
+            modelBuilder.Entity<Position>();
         }
     }
     public class ApplicationDbContextFactory : IDesignTimeDbContextFactory<ApplicationDbContext>

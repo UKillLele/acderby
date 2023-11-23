@@ -15,7 +15,7 @@ const Layout = () => {
                 <Container className="fs-4">
                     <Navbar.Brand as={NavLink} to="/" className="d-lg-none">
                         <img alt="Assassination City Roller Derby"
-                            src="/src/assets/logo-black.gif"
+                            src="/images/logo-black.gif"
                             width="120"
                             height="120"
                             className="d-inline-block align-top"
@@ -57,7 +57,7 @@ const Layout = () => {
                             </NavDropdown>
                             <Navbar.Brand as={NavLink} to="/" className="d-none d-lg-block mx-5">
                                 <img alt="Assassination City Roller Derby"
-                                    src="/src/assets/logo-black.gif"
+                                    src="/images/logo-black.gif"
                                     width="120"
                                     height="120"
                                     className="d-inline-block align-top"
