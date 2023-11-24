@@ -44,7 +44,7 @@ const Teams = () => {
                         <Col xs lg="4" className="text-center mt-5">
                             <Image className="skater-image" src={getImage(captain.imageUrl)} />
                             <div className="mt-0 border bg-dark rounded">
-                                <p className="fs-3 m-0">{captain.number && <span>#{captain.number} -  </span>}<span className="text-nowrap">{captain.name}</span></p>
+                                <p className={`${captain.number && 'd-flex justify-content-between px-3'} fs-3 m-0`}>{captain.number && <span>#{captain.number}</span>}<span className="text-nowrap">{captain.name}</span></p>
                                 <p className="fs-3 m-0">Captain</p>
                             </div>
                         </Col>
@@ -53,7 +53,7 @@ const Teams = () => {
                         <Col xs lg="4" className="text-center mt-5">
                             <Image className="skater-image" src={coCaptain.imageUrl?.length > 0 ? coCaptain.imageUrl : team.defaultSkaterImage} />
                             <div className="mt-0 border bg-dark rounded">
-                                <p className="fs-3 m-0">{coCaptain.number && <span>#{coCaptain.number} - </span>}<span className="text-nowrap">{coCaptain.name}</span></p>
+                                <p className={`${coCaptain.number && 'd-flex justify-content-between px-3'} fs-3 m-0`}>{coCaptain.number && <span>#{coCaptain.number}</span>}<span className="text-nowrap">{coCaptain.name}</span></p>
                                 <p className="fs-3 m-0">Co-Captain</p>
                             </div>
                         </Col>
@@ -64,7 +64,7 @@ const Teams = () => {
                         <Col xs lg="3" key={skater.id} className="text-center mt-5">
                             <Image className="skater-image" src={skater.imageUrl?.length > 0 ? skater.imageUrl : team.defaultSkaterImage} />
                             <div className="mt-0 border bg-dark rounded">
-                                <p className="fs-3 m-0">{skater.number && <span>#{skater.number} - </span>}<span className="text-nowrap">{skater.name}</span></p>
+                                <p className={`${skater.number && 'd-flex justify-content-between px-3'} fs-3 m-0`}>{skater.number && <span>#{skater.number}</span>}<span className="text-nowrap">{skater.name}</span></p>
                             </div>
                         </Col>
                     )}
@@ -74,7 +74,7 @@ const Teams = () => {
                         <Col xs lg="4" className="text-center mt-5">
                             <Image className="skater-image" src={headCoach.imageUrl?.length > 0 ? headCoach.imageUrl : team.defaultSkaterImage} />
                             <div className="mt-0 border bg-dark rounded">
-                                <p className="fs-3 m-0">{headCoach.number && <span>#{headCoach.number} - </span>}<span className="text-nowrap">{headCoach.name}</span></p>
+                                <p className={`${headCoach.number && 'd-flex justify-content-between px-3'} fs-3 m-0`}>{headCoach.number && <span>#{headCoach.number}</span>}<span className="text-nowrap">{headCoach.name}</span></p>
                                 <p className="fs-3 m-0">Head Coach</p>
                             </div>
                         </Col>
@@ -83,7 +83,7 @@ const Teams = () => {
                         <Col xs lg="4" className="text-center mt-5">
                             <Image className="skater-image" src={benchCoach.imageUrl?.length > 0 ? benchCoach.imageUrl : team.defaultSkaterImage} />
                             <div className="mt-0 border bg-dark rounded">
-                                <p className="fs-3 m-0">{benchCoach.number && <span>#{benchCoach.number} - </span>}<span className="text-nowrap">{benchCoach.name}</span></p>
+                                <p className={`${benchCoach.number && 'd-flex justify-content-between px-3'} fs-3 m-0`}>{benchCoach.number && <span>#{benchCoach.number}</span>}<span className="text-nowrap">{benchCoach.name}</span></p>
                                 <p className="fs-3 m-0">Bench Coach</p>
                             </div>
                         </Col>

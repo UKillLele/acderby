@@ -1,4 +1,36 @@
 @import "../node_modules/bootstrap/scss/bootstrap";
+@import '../../node_modules/bootstrap/scss/functions';
+@import '../../node_modules/bootstrap/scss/variables';
+@import '../../node_modules/bootstrap/scss/mixins';
+
+@include media-breakpoint-up(lg) {
+    .overlap-left {
+        margin: 20px 100px 20px -100px;
+    }
+
+    .overlap-right {
+        margin: 20px -100px 20px 100px;
+        z-index: 5;
+    }
+
+    .video {
+        width: 50vw;
+    }
+}
+
+@include media-breakpoint-down(lg) {
+    .overlap-left .overlap-right {
+        display: none;
+    }
+
+    .video {
+        width: 100vw;
+    }
+}
+
+.video {
+    height: 50vh;
+}
 
 .navbar {
     position: absolute;

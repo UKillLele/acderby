@@ -10,6 +10,5 @@
   </PropertyGroup>
   <ItemGroup>
     <Folder Include="src\models\" />
-    <Folder Include="src\services\" />
   </ItemGroup>
 </Project>

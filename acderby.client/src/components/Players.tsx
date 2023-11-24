@@ -366,7 +366,7 @@ const Players = () => {
                             }
                             <Container className="mt-0 border bg-dark rounded">
                                     <Row>
-                                        <p className="fs-3 m-0 text-center">{skater.number && <span>#{skater.number} - </span>}<span className="text-nowrap">{skater.name}</span></p>
+                                        <p className={`${skater.number && 'd-flex justify-content-between px-3'} text-center fs-3 m-0`}>{skater.number && <span>#{skater.number}</span>}<span className="text-nowrap">{skater.name}</span></p>
                                 </Row>
                                 {skater.positions && skater.positions.map((position: Position) =>
                                     <Row key={`${skater.id}-${position.team?.id}`}>
