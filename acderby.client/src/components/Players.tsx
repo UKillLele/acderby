@@ -134,7 +134,7 @@ const Players = () => {
         formData.append("ImageFile", imageFile ?? "");
         formData.append("Positions", JSON.stringify(positions));
 
-        return fetch('api/addPerson', {
+        return fetch('api/add-person', {
             method: 'POST',
             body: formData
         }).then((resp) => {
@@ -161,7 +161,7 @@ const Players = () => {
         formData.append("ImageFile", updatingImageFile ?? "");
         formData.append("Positions", JSON.stringify(updatingPositions));
 
-        return fetch('api/updatePerson', {
+        return fetch('api/update-person', {
             method: 'PUT',
             body: formData
         }).then((resp) => {
@@ -178,7 +178,7 @@ const Players = () => {
     function onDeleteClick() {
         const formData = new FormData();
         formData.append("Id", updatingId);
-        return fetch(`api/deletePerson`, {
+        return fetch(`api/delete-person`, {
             method: 'Post',
             body: formData
         }).then((resp) => {

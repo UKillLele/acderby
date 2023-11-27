@@ -5,8 +5,13 @@ using Azure.Storage.Blobs;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Square;
+using Square.Apis;
+using Square.Exceptions;
+using Square.Models;
 using System.Security.Claims;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 
 namespace acderby.Server.Controllers
 {
@@ -19,14 +24,26 @@ namespace acderby.Server.Controllers
         private readonly IHttpContextAccessor _contextAccessor;
         private readonly BlobContainerClient _blobContainerClient;
         private readonly JsonSerializerOptions _jsonOptions = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+        private readonly SquareClient _client;
 
-        public ApiController(ILogger<ApiController> logger, ApplicationDbContext context, IHttpContextAccessor contextAccessor, BlobServiceClient blobServiceClient)
+        public ApiController(
+            ILogger<ApiController> logger, 
+            ApplicationDbContext context, 
+            IHttpContextAccessor contextAccessor, 
+            BlobServiceClient blobServiceClient,
+            Microsoft.Extensions.Configuration.IConfiguration configuration)
         {
             _logger = logger;
             _context = context;
             _contextAccessor = contextAccessor;
 
-            _blobContainerClient = blobServiceClient.GetBlobContainerClient("photos");
+            _blobContainerClient = blobServiceClient.GetBlobContainerClient("photos"); 
+
+            _client = new SquareClient
+                .Builder()
+                .Environment(Square.Environment.Sandbox)
+                .AccessToken(configuration.GetValue<string>("ConnectionStrings:SquareAccessToken"))
+                .Build();
         }
 
         [HttpGet]
@@ -63,9 +80,9 @@ namespace acderby.Server.Controllers
         }
 
         [HttpPost]
-        [Route("addPerson")]
+        [Route("add-person")]
         [Authorize]
-        public async Task<ActionResult> AddPerson([FromForm] AddPersonRequest person)
+        public async Task<ActionResult> AddPersonAsync([FromForm] AddPersonRequest person)
         {
 
             var newPerson = new Person()
@@ -110,9 +127,9 @@ namespace acderby.Server.Controllers
         }
 
         [HttpPut]
-        [Route("updatePerson")]
+        [Route("update-person")]
         [Authorize]
-        public async Task<ActionResult> UpdatePerson([FromForm] UpdatePersonRequest person)
+        public async Task<ActionResult> UpdatePersonAsync([FromForm] UpdatePersonRequest person)
         {
             if (_context.People.Single(x => x.Id == person.Id) is Person existingPerson)
             {
@@ -189,9 +206,9 @@ namespace acderby.Server.Controllers
         }
 
         [HttpPost]
-        [Route("deletePerson")]
+        [Route("delete-person")]
         [Authorize(Roles = ("Admin, Editor"))]
-        public async Task<ActionResult> DeletePlayer([FromForm] Guid id)
+        public async Task<ActionResult> DeletePersonAsync([FromForm] Guid id)
         {
             var person = await _context.People.FindAsync(id);
             if (person != null)
@@ -201,6 +218,118 @@ namespace acderby.Server.Controllers
                 return Ok();
             }
             return BadRequest("Person does not exist in database");
+        }
+
+        [HttpPost]
+        [Route("process-payment")]
+        public async Task<ActionResult> ProcessPaymentAsync()
+        {
+            var request = await JsonNode.ParseAsync(Request.Body);
+            if (request != null)
+            {
+                var token = (string)request["sourceId"]!;
+
+                var uuid = Guid.NewGuid().ToString();
+                var amount = new Money
+                    .Builder()
+                    .Amount(100L)
+                    .Currency("USD")
+                    .Build();
+                var createPaymentRequest = new CreatePaymentRequest.Builder(
+                    sourceId: token,
+                    idempotencyKey: uuid)
+                    .AmountMoney(amount)
+                    .Build();
+
+                try
+                {
+                    var response = await _client.PaymentsApi.CreatePaymentAsync(createPaymentRequest);
+                    return new JsonResult(new { payment = response.Payment });
+                }
+                catch (ApiException e)
+                {
+                    return new JsonResult(new { errors = e.Errors });
+                }
+            }
+            return NotFound();
+        }
+
+        [HttpPost]
+        [Route("update-order")]
+        public async Task<ActionResult> UpdateOrderAsync([FromBody] OrderAddItemRequest request)
+        {
+
+            var lineItems = new List<OrderLineItem>();
+            var itemsToRemove = new List<string>();
+            foreach (var item in request.Items)
+            {
+
+                if (item.Uid != null)
+                {
+                    if (Int32.Parse(item.Quantity) > 0)
+                    {
+                        var orderLineItem = new OrderLineItem.Builder(quantity: item.Quantity)
+                          .Uid(item.Uid)
+                          .Build();
+
+                        lineItems.Add(orderLineItem);
+                    }
+                    else
+                    {
+                        itemsToRemove.Add($"line_items[{item.Uid}]");
+                    }
+                } 
+                else
+                {
+                    var orderLineItem = new OrderLineItem.Builder(quantity: item.Quantity)
+                      .CatalogObjectId(item.LineItemId)
+                      .Build();
+
+                    lineItems.Add(orderLineItem);
+                }
+            }
+
+            var pricingOptions = new OrderPricingOptions.Builder()
+              .AutoApplyDiscounts(true)
+              .Build();
+
+            var order = new Order.Builder(locationId: "LX5D3XC4CJ77A")
+              .LineItems(lineItems)
+              .PricingOptions(pricingOptions)
+              .Version(request.Version)
+              .Build();
+
+            if (request.OrderId != null)
+            {
+                var body = new UpdateOrderRequest.Builder()
+                  .Order(order)
+                  .FieldsToClear(itemsToRemove)
+                  .IdempotencyKey(Guid.NewGuid().ToString())
+                  .Build();
+
+                var result = await _client.OrdersApi.UpdateOrderAsync(request.OrderId, body);
+
+                return Ok(result.Order);
+            }
+            else
+            {
+                var body = new CreateOrderRequest.Builder()
+                  .Order(order)
+                  .IdempotencyKey(Guid.NewGuid().ToString())
+                  .Build();
+
+                var result = await _client.OrdersApi.CreateOrderAsync(body);
+
+                return Ok(result.Order);
+            }
+        }
+
+        [HttpGet]
+        [Route("order/{id}")]
+        public async Task<ActionResult> GetOrderAsync(string id)
+        {
+            var result = await _client.OrdersApi.RetrieveOrderAsync(id);
+            return Ok(result.Order);
         }
     }
 }

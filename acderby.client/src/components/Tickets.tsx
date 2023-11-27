@@ -1,8 +1,9 @@
-
+import Shop from "./Shop";
 
 const Tickets = () => {
+
     return (
-        <div className="content">Tickets</div>
+        <Shop />
     )
 }
 
