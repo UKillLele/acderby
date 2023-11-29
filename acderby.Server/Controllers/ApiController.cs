@@ -1,17 +1,23 @@
 ﻿using acderby.Server.Data;
 using acderby.Server.Models;
 using acderby.Server.ViewModels;
+using Azure;
 using Azure.Storage.Blobs;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Mono.TextTemplating;
 using Square;
 using Square.Apis;
 using Square.Exceptions;
 using Square.Models;
+using System.Configuration;
+using System.Net;
 using System.Security.Claims;
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using System.Xml.Linq;
+using static System.Net.WebRequestMethods;
 
 namespace acderby.Server.Controllers
 {
@@ -22,22 +28,24 @@ namespace acderby.Server.Controllers
         private readonly ILogger<ApiController> _logger;
         private readonly ApplicationDbContext _context;
         private readonly IHttpContextAccessor _contextAccessor;
+        private readonly Microsoft.Extensions.Configuration.IConfiguration _configuration;
         private readonly BlobContainerClient _blobContainerClient;
         private readonly JsonSerializerOptions _jsonOptions = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
         private readonly SquareClient _client;
 
         public ApiController(
-            ILogger<ApiController> logger, 
-            ApplicationDbContext context, 
-            IHttpContextAccessor contextAccessor, 
+            ILogger<ApiController> logger,
+            ApplicationDbContext context,
+            IHttpContextAccessor contextAccessor,
             BlobServiceClient blobServiceClient,
             Microsoft.Extensions.Configuration.IConfiguration configuration)
         {
             _logger = logger;
             _context = context;
             _contextAccessor = contextAccessor;
+            _configuration = configuration;
 
-            _blobContainerClient = blobServiceClient.GetBlobContainerClient("photos"); 
+            _blobContainerClient = blobServiceClient.GetBlobContainerClient("photos");
 
             _client = new SquareClient
                 .Builder()
@@ -54,7 +62,7 @@ namespace acderby.Server.Controllers
 
         [HttpGet]
         [Route("teams")]
-        public ActionResult Teams() 
+        public ActionResult Teams()
         {
             var teams = _context.Teams;
             return Ok(teams);
@@ -90,7 +98,7 @@ namespace acderby.Server.Controllers
                 Id = Guid.NewGuid(),
                 Name = person.Name,
                 Number = person.Number
-            }; 
+            };
             if (person.ImageFile?.Length > 0)
             {
                 using var ms = new MemoryStream();
@@ -162,8 +170,8 @@ namespace acderby.Server.Controllers
                             }
                             else // create position
                             {
-                                var newPosition = new Position 
-                                { 
+                                var newPosition = new Position
+                                {
                                     Id = Guid.NewGuid(),
                                     Person = existingPerson,
                                     Type = item.Type,
@@ -192,7 +200,7 @@ namespace acderby.Server.Controllers
 
         [HttpGet]
         [Route("players")]
-        [Authorize(Roles=("Admin, Editor"))]
+        [Authorize(Roles = ("Admin, Editor"))]
         public ActionResult Players()
         {
             var players = _context.People
@@ -222,23 +230,16 @@ namespace acderby.Server.Controllers
 
         [HttpPost]
         [Route("process-payment")]
-        public async Task<ActionResult> ProcessPaymentAsync()
+        public async Task<ActionResult> ProcessPaymentAsync(PaymentRequest request)
         {
-            var request = await JsonNode.ParseAsync(Request.Body);
             if (request != null)
             {
-                var token = (string)request["sourceId"]!;
-
                 var uuid = Guid.NewGuid().ToString();
-                var amount = new Money
-                    .Builder()
-                    .Amount(100L)
-                    .Currency("USD")
-                    .Build();
                 var createPaymentRequest = new CreatePaymentRequest.Builder(
-                    sourceId: token,
+                    sourceId: request.SourceId,
                     idempotencyKey: uuid)
-                    .AmountMoney(amount)
+                    .OrderId(request.Order?.Id)
+                    .AmountMoney(request.Order?.NetAmountDueMoney)
                     .Build();
 
                 try
@@ -278,7 +279,7 @@ namespace acderby.Server.Controllers
                     {
                         itemsToRemove.Add($"line_items[{item.Uid}]");
                     }
-                } 
+                }
                 else
                 {
                     var orderLineItem = new OrderLineItem.Builder(quantity: item.Quantity)
@@ -329,6 +330,106 @@ namespace acderby.Server.Controllers
         public async Task<ActionResult> GetOrderAsync(string id)
         {
             var result = await _client.OrdersApi.RetrieveOrderAsync(id);
+            return Ok(result.Order);
+        }
+
+        [HttpPost]
+        [Route("validate-address")]
+        public ActionResult ValidateAddress([FromForm] Models.Address address)
+        {
+            var username = _configuration.GetValue<string>("ConnectionStrings:USPSUsername");
+            var password = _configuration.GetValue<string>("ConnectionStrings:USPSPassword");
+
+            XDocument requestDoc = new XDocument(
+                new XElement("AddressValidateRequest",
+                    new XAttribute("USERID", $"{username}"),
+                    new XAttribute("PASSWORD", $"{password}"),
+                    new XElement("Revision", "1"),
+                    new XElement("Address",
+                        new XAttribute("ID", "0"),
+                        new XElement("Address1", $"{address.Address2}"),
+                        new XElement("Address2", $"{address.Address1}"),
+                        new XElement("City", $"{address.City}"),
+                        new XElement("State", $"{address.State}"),
+                        new XElement("Zip5", $"{address.Zipcode}"),
+                        new XElement("Zip4", "")
+                    )
+                )
+            );
+
+            try
+            {
+                var url = "http://production.shippingapis.com/ShippingAPI.dll?API=Verify&XML=" + requestDoc;
+                // HttpClient won't work here
+                var client = new WebClient();
+                var result = client.DownloadString(url);
+
+                var xdoc = XDocument.Parse(result.ToString());
+                var parsedAddress = xdoc.Descendants("Address");
+                var response = new Models.Address()
+                {
+                    Address1 = parsedAddress?.Elements("Address2")?.FirstOrDefault()?.Value,
+                    Address2 = parsedAddress?.Elements("Address1")?.FirstOrDefault()?.Value,
+                    City = parsedAddress?.Elements("City")?.FirstOrDefault()?.Value,
+                    State = parsedAddress?.Elements("State")?.FirstOrDefault()?.Value,
+                    Zipcode = $"{parsedAddress?.Elements("Zip5")?.FirstOrDefault()?.Value}-{parsedAddress?.Elements("Zip4")?.FirstOrDefault()?.Value}",
+                    ReturnText = parsedAddress?.Elements("ReturnText")?.FirstOrDefault()?.Value
+                };
+                if (response.Address1 == null)
+                {
+                    var error = parsedAddress?.Elements("Error");
+                    return Ok(JsonSerializer.Serialize(error?.Elements("Description")?.FirstOrDefault()?.Value));
+                }
+                return Ok(response);
+            }
+            catch (WebException e)
+            {
+                return Ok(e.ToString());
+            }
+        }
+
+        [HttpPost]
+        [Route("add-fulfillment")]
+        public async Task<ActionResult> AddFullfillmentAsync([FromBody] AddFulfillmentRequest request)
+        { 
+            var fulfillments = new List<Fulfillment>();
+            var serviceCharges = new List<OrderServiceCharge>();
+            var itemsToRemove = new List<string>();
+            if (request.Fulfillment == "shipment")
+            {
+                var amount = new Money(600, "USD");
+                OrderServiceCharge serviceCharge = new OrderServiceCharge(name: "Shipping", amountMoney: amount, calculationPhase: "TOTAL_PHASE");
+                serviceCharges.Add(serviceCharge);
+
+                var address = new Square.Models.Address(request.Address1, request.Address2, null, request.State, request.City, postalCode: request.Zipcode);
+                var recipient = new FulfillmentRecipient(null, request.DisplayName, request.EmailAddress, request.PhoneNumber, address);
+                var shipmentDetails = new FulfillmentShipmentDetails(recipient);
+                var fulfillment = new Fulfillment(type: "SHIPMENT", shipmentDetails: shipmentDetails);
+                fulfillments.Add(fulfillment);
+            } 
+            else
+            {
+                var recipient = new FulfillmentRecipient(null, request.DisplayName, request.EmailAddress, request.PhoneNumber);
+                var pickupDetails = new FulfillmentPickupDetails(recipient);
+                var fulfillment = new Fulfillment(type: "PICKUP", pickupDetails: pickupDetails);
+                itemsToRemove.Add("service_charges");
+            }
+
+            var order = new Order.Builder(locationId: "LX5D3XC4CJ77A")
+              .Version(request.Version)
+              .Fulfillments(fulfillments)
+              .ServiceCharges(serviceCharges)
+              .State("OPEN")
+              .Build();
+
+            var body = new UpdateOrderRequest.Builder()
+                .Order(order)
+                .FieldsToClear(itemsToRemove)
+                .IdempotencyKey(Guid.NewGuid().ToString())
+                .Build();
+
+            var result = await _client.OrdersApi.UpdateOrderAsync(request.OrderId, body);
+
             return Ok(result.Order);
         }
     }

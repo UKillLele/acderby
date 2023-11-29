@@ -1,5 +1,5 @@
 import { TokenResult } from "@square/web-payments-sdk-types";
-import { useEffect, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import { Accordion, Button, Card, CloseButton, Col, Container, Form, ListGroup, Modal, Row, Spinner } from "react-bootstrap";
 import { PaymentForm, CreditCard } from "react-square-web-payments-sdk";
 import { CatalogObject, Client, Order, Environment } from "square";
@@ -8,6 +8,8 @@ const client = new Client({
     accessToken: import.meta.env.VITE_SQUARE_ACCESS_TOKEN,
     environment: Environment.Sandbox
 });
+
+const states = ["AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DE", "DC", "FL", "GA", "HI", "ID", "IL", "IN", "IA", "KS", "KY", "LA", "ME", "MD", "MA", "MI", "MN", "MS", "MO", "MT", "NE", "NV", "NH", "NJ", "NM", "NY", "NC", "ND", "OH", "OK", "OR", "PA", "RI", "SC", "SD", "TN", "TX", "UT", "VT", "VA", "WA", "WI", "WV", "WY"];
 
 function getItemPrice(item: CatalogObject) {
     const prices: number[] = [];
@@ -34,6 +36,8 @@ const Shop = () => {
     const [itemQuantities, setItemQuantities] = useState<{ id: string, quantity: string }[]>([]);
     const [activeKey, setActiveKey] = useState("0");
     const [fulfillment, setFulfillment] = useState("");
+    const [validated, setValidated] = useState(false);
+    const [uspsResponse, setUspsResponse] = useState("");
     
     useEffect(() => {
         const page = window.location.pathname;
@@ -83,12 +87,33 @@ const Shop = () => {
     }, [])
 
     useEffect(() => {
-        // populate card inputs with quantity
+        // populate catalog card inputs with quantity
         const quantities: { id: string, quantity: string }[] = [];
         order?.lineItems?.forEach(item => {
             quantities.push({ id: item.catalogObjectId!, quantity: item.quantity })
         })
         setItemQuantities(quantities);
+
+        setFulfillment(order?.fulfillments && order.fulfillments[0].type ? order.fulfillments[0].type.toLowerCase() : "");
+
+        // populate form fields
+        const form = document.getElementById("orderForm") as HTMLFormElement;
+        if (form && order?.fulfillments) {
+            if (fulfillment === "shipment") {
+                form.displayName.value = order?.fulfillments[0].shipmentDetails?.recipient?.displayName;
+                form.email.value = order?.fulfillments[0].shipmentDetails?.recipient?.emailAddress;
+                form.phone.value = order?.fulfillments[0].shipmentDetails?.recipient?.phoneNumber;
+                form.address1.value = order?.fulfillments[0].shipmentDetails?.recipient?.address?.addressLine1;
+                form.address2.value = order?.fulfillments[0].shipmentDetails?.recipient?.address?.addressLine2;
+                form.city.value = order?.fulfillments[0].shipmentDetails?.recipient?.address?.sublocality;
+                form.state.value = order?.fulfillments[0].shipmentDetails?.recipient?.address?.locality;
+                form.zipcode.value = order?.fulfillments[0].shipmentDetails?.recipient?.address?.postalCode;
+            } else if (fulfillment === "pickup") {
+                form.displayName.value = order?.fulfillments[0].pickupDetails?.recipient?.displayName;
+                form.email.value = order?.fulfillments[0].pickupDetails?.recipient?.emailAddress;
+                form.phone.value = order?.fulfillments[0].pickupDetails?.recipient?.phoneNumber;
+            }
+        }
     }, [order])
 
     async function onItemAmountChange(amount: string, itemId: string) {
@@ -153,11 +178,85 @@ const Shop = () => {
         }
     }
 
-    function validateFulfillment() {
-        // validate
-        // update order
-        // add $6 fee for shipments
-        // setActiveKey("2")
+    function validateFulfillment(event: FormEvent<HTMLFormElement>) {
+        event.preventDefault();
+        const form = event.currentTarget;
+        if (form.checkValidity() === true) {
+            if (fulfillment == "shipment") {
+                const formData = new FormData();
+                formData.append('address1', form.address1.value.replace("&", "%26").replace("#", "%23"));
+                formData.append('address2', form.address2.value.replace("&", "%26").replace("#", "%23"));
+                formData.append('city', form.city.value.replace("&", "%26").replace("#", "%23"));
+                formData.append('state', form.state.value);
+                formData.append('zipcode', form.zipcode.value.replace("&", "%26").replace("#", "%23"));
+
+                fetch('/api/validate-address',{
+                    method: 'POST',
+                    body: formData
+                }).then(resp => resp.json()).then(data => {
+                    if (data.address1 && data.address1.toLowerCase() != form.address1.value.toLowerCase()) {
+                        form.address1.value = data.address1;
+                    }
+                    if (data.address2 && data.address2.toLowerCase() != form.address2.value.toLowerCase()) {
+                        form.address2.value = data.address2;
+                    }
+                    if (data.city && data.city.toLowerCase() != form.city.value.toLowerCase()) {
+                        form.city.value = data.city;
+                    }
+                    if (data.state && data.state != form.state.value) {
+                        form.state.value = data.State;
+                    }
+                    if (data.zipcode && data.zipcode != form.zipcode.value) {
+                        form.zipcode.value = data.zipcode;
+                    }
+                    if (data.returnText || typeof data == 'string') {
+                        setUspsResponse(data.returnText ?? data);
+                    } else {
+                        setUspsResponse("");
+                    }
+
+                    if (uspsResponse === "") {
+                        addFulfillmentToOrder(form);
+                        // add $6 fee for shipments
+                        // setActiveKey("2")
+                    }
+                }, error => console.log(error));
+            } else addFulfillmentToOrder(form);
+        }
+        setValidated(true);
+    }
+
+    function addFulfillmentToOrder(form: HTMLFormElement) {
+        const request = {
+            displayName: form.displayName.value,
+            emailAddress: form.email.value,
+            phoneNumber: form.phone?.value,
+            address1: form.address1?.value,
+            address2: form.address2?.value,
+            city: form.city?.value,
+            state: form.state?.value,
+            zipcode: form.zipcode?.value,
+            version: order?.version,
+            orderId: order?.id,
+            fulfillment: fulfillment
+        }
+        fetch('/api/add-fulfillment', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(request)
+        }).then(resp => resp.json()).then((order: Order) => {
+            if (order) {
+                setOrder(order);
+                setActiveKey("2");
+            }
+        });
+    }
+
+    function clearCart() {
+        const form = document.getElementById("orderForm") as HTMLFormElement;
+        form.reset();
+        document.cookie = 'orderId=';
+        setOrder(undefined);
     }
 
     return (
@@ -214,7 +313,7 @@ const Shop = () => {
                     <Col xs lg="4">
                         <Row>
                             <Col>
-                                <Accordion activeKey={activeKey} onSelect={(event) => setActiveKey(event!.toString())}>
+                                <Accordion activeKey={activeKey} onSelect={(event) => event && setActiveKey(event.toString())}>
                                     <Accordion.Item eventKey="0">
                                         <Accordion.Header>
                                             Order {Number(order?.totalMoney?.amount) > 0 && <span className="ps-3">${Number(order?.totalMoney?.amount)/100}</span>}
@@ -236,7 +335,7 @@ const Shop = () => {
                                                                 <CloseButton aria-label="Delet item" onClick={() => onItemAmountChange("0", item.catalogObjectId!)} />
                                                             </Col>
                                                             <Col xs="auto">
-                                                                ${Number(item.variationTotalPriceMoney?.amount) / 100}
+                                                                ${Number(item.variationTotalPriceMoney?.amount ?? 0) / 100}
                                                             </Col>
                                                         </Row>
                                                     </ListGroup.Item>
@@ -244,12 +343,24 @@ const Shop = () => {
                                             </ListGroup>
                                             {Number(order?.totalDiscountMoney?.amount) > 0 &&
                                                 order?.discounts?.map(discount =>
-                                                    <Row className="p-3">
+                                                    <Row key={discount.uid} className="p-3">
                                                         <Col>
                                                             {discount.name}:
                                                         </Col>
                                                         <Col xs="auto">
-                                                            ${Number(discount.appliedMoney?.amount) / 100}
+                                                            ${Number(discount.appliedMoney?.amount ?? 0) / 100}
+                                                        </Col>
+                                                    </Row>
+                                                )
+                                            }
+                                            {order?.serviceCharges &&
+                                                order?.serviceCharges?.map(charge =>
+                                                    <Row key={charge.uid} className="p-3">
+                                                        <Col>
+                                                            {charge.name}:
+                                                        </Col>
+                                                        <Col xs="auto">
+                                                            ${Number(charge.appliedMoney?.amount ?? 0) / 100}
                                                         </Col>
                                                     </Row>
                                                 )
@@ -259,7 +370,7 @@ const Shop = () => {
                                                     Total:
                                                 </Col>
                                                 <Col xs="auto">
-                                                    ${Number(order?.totalMoney?.amount) / 100}
+                                                    ${Number(order?.totalMoney?.amount ?? 0) / 100}
                                                 </Col>
                                             </Row>
                                             <Row>
@@ -271,43 +382,90 @@ const Shop = () => {
                                     </Accordion.Item>
                                     <Accordion.Item eventKey="1">
                                         <Accordion.Header>
-                                            Fulfillment {fulfillment && <span className="ps-3">{fulfillment.toUpperCase()}</span>}
+                                            Fulfillment {fulfillment && <span className="ps-3">{fulfillment.toUpperCase()}</span>} {order?.serviceCharges && <span className="ps-3">${Number(order?.serviceCharges[0].amountMoney?.amount) / 100 ?? 0}</span>}
                                         </Accordion.Header>
                                         <Accordion.Body>
                                             <Row className="pb-3">
                                                 <Col>
                                                     <Form.Select onChange={(event) => setFulfillment(event.currentTarget.value)}>
                                                         <option value="">Select option</option>
-                                                        <option value="shipment">Ship</option>
-                                                        <option value="pickup">Bout day pickup</option>
+                                                        <option value="shipment">Ship - $6</option>
+                                                        <option value="pickup">Bout day pickup - Free</option>
                                                     </Form.Select>
                                                 </Col>
                                             </Row>
-                                            {fulfillment &&
-                                                <Row className="pb-3">
-                                                    <Col>
-                                                        <Form.Control placeholder="Name" type="string" required />
-                                                        <Form.Control placeholder="Email" type="email" required />
-                                                        <Form.Control placeholder="Phone" type="phone" />
+                                            <Form id="orderForm" noValidate validated={validated} onSubmit={validateFulfillment}>
+                                                {fulfillment &&
+                                                    <Row className="pb-3">
+                                                        <Form.Group as={Col} className="py-1" xs="12" controlId="displayName">
+                                                            <Form.Control placeholder="Name" type="string" aria-label="displayName" required />
+                                                            <Form.Control.Feedback type="invalid">
+                                                                Please enter a name.
+                                                            </Form.Control.Feedback>
+                                                        </Form.Group>
+                                                        <Form.Group as={Col} className="py-1" xs="12" controlId="email">
+                                                            <Form.Control placeholder="Email" type="email" aria-label="email" required />
+                                                            <Form.Control.Feedback type="invalid">
+                                                                Please enter a valid email address.
+                                                            </Form.Control.Feedback>
+                                                        </Form.Group>
+                                                        <Form.Group as={Col} className="py-1" xs="12" controlId="phone">
+                                                            <Form.Control placeholder="Phone" type="phone" aria-label="phone" pattern="/^[0-9()-]+$/" />
+                                                            <Form.Control.Feedback type="invalid">
+                                                                Please enter a valid phone number.
+                                                            </Form.Control.Feedback>
+                                                        </Form.Group>
+                                                    </Row>
+                                                }
+                                                {fulfillment == "shipment" &&
+                                                    <Row className="pb-3">
+                                                        <Form.Group as={Col} className="py-1" xs="12" controlId="address1">
+                                                            <Form.Control placeholder="Address 1" required={fulfillment == "shipment"} type="string" />
+                                                            <Form.Control.Feedback type="invalid">
+                                                                Please enter a valid street address.
+                                                            </Form.Control.Feedback>
+                                                        </Form.Group>
+                                                        <Form.Group as={Col} className="py-1" xs="12" controlId="address2">
+                                                            <Form.Control placeholder="Address 2" type="string" />
+                                                            <Form.Control.Feedback type="invalid">
+                                                                Please enter a valid unit number.
+                                                            </Form.Control.Feedback>
+                                                        </Form.Group>
+                                                        <Form.Group as={Col} className="py-1" xs="12" controlId="city">
+                                                            <Form.Control placeholder="City" required={fulfillment == "shipment"} type="string" />
+                                                            <Form.Control.Feedback type="invalid">
+                                                                Please enter a valid city.
+                                                            </Form.Control.Feedback>
+                                                        </Form.Group>
+                                                        <Form.Group as={Col} className="py-1" xs="6" controlId="state">
+                                                        <Form.Select placeholder="State" required={fulfillment == "shipment"}>
+                                                            {states.map(state => 
+                                                                <option key={state} value={state}>{state}</option>
+                                                            )}
+                                                            </Form.Select>
+                                                            <Form.Control.Feedback type="invalid">
+                                                                Please select a state.
+                                                            </Form.Control.Feedback>
+                                                        </Form.Group>
+                                                        <Form.Group as={Col} className="py-1" xs="6" controlId="zipcode">
+                                                            <Form.Control placeholder="Zipcode" type="string" />
+                                                        </Form.Group>
+                                                        <span className="ps-3">Address validation by www.usps.com</span>
+                                                    </Row>
+                                                }
+                                                {uspsResponse && 
+                                                    <Row>
+                                                        <Col className="m-4 border border-danger rounded pt-3 text-center">
+                                                            <p>{uspsResponse}</p>
+                                                        </Col>
+                                                    </Row>    
+                                                }
+                                                <Row>
+                                                    <Col className="text-center">
+                                                        <Button size="lg" className="px-5" hidden={!fulfillment} type="submit">{fulfillment === "shipment" && (!validated || uspsResponse != "") ? 'Verify' : 'Checkout'}</Button>
                                                     </Col>
                                                 </Row>
-                                            }
-                                            {fulfillment == "shipment" &&
-                                                <Row className="pb-3">
-                                                    <Col>
-                                                        <Form.Control placeholder="Address 1" type="string" />
-                                                        <Form.Control placeholder="Address 2" type="string" />
-                                                        <Form.Control placeholder="City" type="string" />
-                                                        <Form.Control placeholder="State" type="string" />
-                                                        <Form.Control placeholder="Zipcode" type="string" />
-                                                    </Col>
-                                                </Row>
-                                            }
-                                            <Row>
-                                                <Col className="text-center">
-                                                    <Button size="lg" className="px-5" hidden={!fulfillment} onClick={validateFulfillment}>Checkout</Button>
-                                                </Col>
-                                            </Row>
+                                            </Form>
                                         </Accordion.Body>
                                     </Accordion.Item>
                                     <Accordion.Item eventKey="2">
@@ -318,9 +476,10 @@ const Shop = () => {
                                             <PaymentForm
                                                 applicationId={import.meta.env.VITE_SQUARE_APPLICATION_ID}
                                                 cardTokenizeResponseReceived={async (token: TokenResult) => {
-                                                    const dataJsonString = JSON.stringify({ sourceId: token.token });
+                                                    const dataJsonString = JSON.stringify({ sourceId: token.token, order });
                                                     await fetch('api/process-payment', {
                                                         method: 'POST',
+                                                        headers: { "Content-Type": "application/json"},
                                                         body: dataJsonString
                                                     }).then(resp => resp.json()).then(data => {
                                                         if (data.errors && data.errors.length > 0) {
@@ -334,6 +493,7 @@ const Shop = () => {
                                                         } else {
                                                             //window.showSuccess('Payment Successful!');
                                                             console.log('Payment Successful!');
+                                                            clearCart();
                                                         }
                                                     })
                                                 }}
