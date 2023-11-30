@@ -308,9 +308,15 @@ namespace acderby.Server.Controllers
                   .IdempotencyKey(Guid.NewGuid().ToString())
                   .Build();
 
-                var result = await _client.OrdersApi.UpdateOrderAsync(request.OrderId, body);
-
-                return Ok(result.Order);
+                try
+                {
+                    var result = await _client.OrdersApi.UpdateOrderAsync(request.OrderId, body);
+                    return Ok(result.Order);
+                }
+                catch (ApiException ex)
+                {
+                    return BadRequest(ex.Errors);
+                }
             }
             else
             {
@@ -319,9 +325,15 @@ namespace acderby.Server.Controllers
                   .IdempotencyKey(Guid.NewGuid().ToString())
                   .Build();
 
-                var result = await _client.OrdersApi.CreateOrderAsync(body);
-
-                return Ok(result.Order);
+                try
+                {
+                    var result = await _client.OrdersApi.CreateOrderAsync(body);
+                    return Ok(result.Order);
+                }
+                catch (ApiException ex)
+                {
+                    return BadRequest(ex.Errors);
+                }
             }
         }
 
@@ -382,9 +394,9 @@ namespace acderby.Server.Controllers
                 }
                 return Ok(response);
             }
-            catch (WebException e)
+            catch (ApiException ex)
             {
-                return Ok(e.ToString());
+                return BadRequest(ex.Errors);
             }
         }
 
@@ -410,8 +422,9 @@ namespace acderby.Server.Controllers
             else
             {
                 var recipient = new FulfillmentRecipient(null, request.DisplayName, request.EmailAddress, request.PhoneNumber);
-                var pickupDetails = new FulfillmentPickupDetails(recipient);
+                var pickupDetails = new FulfillmentPickupDetails(recipient, pickupAt: "3000-01-01");
                 var fulfillment = new Fulfillment(type: "PICKUP", pickupDetails: pickupDetails);
+                fulfillments.Add(fulfillment);
                 itemsToRemove.Add("service_charges");
             }
 
@@ -427,10 +440,16 @@ namespace acderby.Server.Controllers
                 .FieldsToClear(itemsToRemove)
                 .IdempotencyKey(Guid.NewGuid().ToString())
                 .Build();
+            try
+            {
+                var result = await _client.OrdersApi.UpdateOrderAsync(request.OrderId, body);
 
-            var result = await _client.OrdersApi.UpdateOrderAsync(request.OrderId, body);
-
-            return Ok(result.Order);
+                return Ok(result.Order);
+            }
+            catch (ApiException ex)
+            {
+                return BadRequest(ex.Errors);
+            }
         }
     }
 }

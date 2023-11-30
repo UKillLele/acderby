@@ -1,6 +1,6 @@
 import { TokenResult } from "@square/web-payments-sdk-types";
 import { FormEvent, useEffect, useState } from "react";
-import { Accordion, Button, Card, CloseButton, Col, Container, Form, ListGroup, Modal, Row, Spinner } from "react-bootstrap";
+import { Accordion, Button, Card, CloseButton, Col, Container, Form, ListGroup, Modal, Row, Spinner, Toast, ToastContainer } from "react-bootstrap";
 import { PaymentForm, CreditCard } from "react-square-web-payments-sdk";
 import { CatalogObject, Client, Order, Environment } from "square";
 
@@ -38,14 +38,25 @@ const Shop = () => {
     const [fulfillment, setFulfillment] = useState("");
     const [validated, setValidated] = useState(false);
     const [uspsResponse, setUspsResponse] = useState("");
-    
+    const [error, setMessage] = useState("");
+    const [showToast, setShowToast] = useState(false);
+    const [toastState, setToastState] = useState("");
+    const [displayName, setDisplayName] = useState("");
+    const [emailAddress, setEmailAddress] = useState("");
+    const [phoneNumber, setPhoneNumber] = useState("");
+    const [address1, setAddress1] = useState("");
+    const [address2, setAddress2] = useState("");
+    const [city, setCity] = useState("");
+    const [state, setState] = useState("");
+    const [zipcode, setZipcode] = useState("");    
+
     useEffect(() => {
         const page = window.location.pathname;
         const orderId = document.cookie.split('; ').find(x => x.startsWith('orderId'))?.split('=')[1];
         if (orderId) {
             fetch(`/api/order/${orderId}`).then(resp => resp.json()).then(data => {
                 setOrder(data);
-            }, error => console.log(error));
+            }, error => setToast(error));
         }
         client.catalogApi.listCatalog(undefined, "CATEGORY").then(data => {
             const { objects } = data.result;
@@ -71,17 +82,18 @@ const Shop = () => {
                             setCatalog(catalogObjects);
                             setLoading(false);
                         }, imageError => {
-                            console.log(imageError)
+
+                            setToast(imageError)
                             setLoading(false);
                         })
                     }
                 }, catalogError => {
-                    console.log(catalogError)
+                    setToast(catalogError)
                     setLoading(false);
                 });
             }
         }, categoryError => {
-            console.log(categoryError)
+            setToast(categoryError)
             setLoading(false);
         });
     }, [])
@@ -97,24 +109,29 @@ const Shop = () => {
         setFulfillment(order?.fulfillments && order.fulfillments[0].type ? order.fulfillments[0].type.toLowerCase() : "");
 
         // populate form fields
-        const form = document.getElementById("orderForm") as HTMLFormElement;
-        if (form && order?.fulfillments) {
-            if (fulfillment === "shipment") {
-                form.displayName.value = order?.fulfillments[0].shipmentDetails?.recipient?.displayName;
-                form.email.value = order?.fulfillments[0].shipmentDetails?.recipient?.emailAddress;
-                form.phone.value = order?.fulfillments[0].shipmentDetails?.recipient?.phoneNumber;
-                form.address1.value = order?.fulfillments[0].shipmentDetails?.recipient?.address?.addressLine1;
-                form.address2.value = order?.fulfillments[0].shipmentDetails?.recipient?.address?.addressLine2;
-                form.city.value = order?.fulfillments[0].shipmentDetails?.recipient?.address?.sublocality;
-                form.state.value = order?.fulfillments[0].shipmentDetails?.recipient?.address?.locality;
-                form.zipcode.value = order?.fulfillments[0].shipmentDetails?.recipient?.address?.postalCode;
-            } else if (fulfillment === "pickup") {
-                form.displayName.value = order?.fulfillments[0].pickupDetails?.recipient?.displayName;
-                form.email.value = order?.fulfillments[0].pickupDetails?.recipient?.emailAddress;
-                form.phone.value = order?.fulfillments[0].pickupDetails?.recipient?.phoneNumber;
+        if (order?.fulfillments) {
+            if (order.fulfillments[0].type?.toLowerCase() === "shipment") {
+                setDisplayName(order?.fulfillments[0].shipmentDetails?.recipient?.displayName ?? "");
+                setEmailAddress(order?.fulfillments[0].shipmentDetails?.recipient?.emailAddress ?? "");
+                setPhoneNumber(order?.fulfillments[0].shipmentDetails?.recipient?.phoneNumber ?? "");
+                setAddress1(order?.fulfillments[0].shipmentDetails?.recipient?.address?.addressLine1 ?? "");
+                setAddress2(order?.fulfillments[0].shipmentDetails?.recipient?.address?.addressLine2 ?? "");
+                setCity(order?.fulfillments[0].shipmentDetails?.recipient?.address?.sublocality ?? "");
+                setState(order?.fulfillments[0].shipmentDetails?.recipient?.address?.locality ?? "");
+                setZipcode(order?.fulfillments[0].shipmentDetails?.recipient?.address?.postalCode ?? "");
+            } else if (order.fulfillments[0].type?.toLowerCase() === "pickup") {
+                setDisplayName(order?.fulfillments[0].pickupDetails?.recipient?.displayName ?? "");
+                setEmailAddress(order?.fulfillments[0].pickupDetails?.recipient?.emailAddress ?? "");
+                setPhoneNumber(order?.fulfillments[0].pickupDetails?.recipient?.phoneNumber ?? "");
             }
         }
     }, [order])
+
+    function setToast(message: string, success = false) {
+        setMessage(message);
+        setShowToast(true);
+        setToastState(success ? 'border-success' : 'border-danger');
+    }
 
     async function onItemAmountChange(amount: string, itemId: string) {
             const item = [{ lineItemId: itemId, quantity: amount }];
@@ -144,7 +161,7 @@ const Shop = () => {
                 setOrder(order);
                 document.cookie = `orderId=${order.id}`;
             }
-        }, error => console.log(error));
+        }, error => setToast(error));
     }
 
     function onAddItemModalClick(item: CatalogObject) {
@@ -180,34 +197,33 @@ const Shop = () => {
 
     function validateFulfillment(event: FormEvent<HTMLFormElement>) {
         event.preventDefault();
-        const form = event.currentTarget;
-        if (form.checkValidity() === true) {
-            if (fulfillment == "shipment") {
+        if (event.currentTarget.checkValidity() === true) {
+            if (fulfillment === "shipment") {
                 const formData = new FormData();
-                formData.append('address1', form.address1.value.replace("&", "%26").replace("#", "%23"));
-                formData.append('address2', form.address2.value.replace("&", "%26").replace("#", "%23"));
-                formData.append('city', form.city.value.replace("&", "%26").replace("#", "%23"));
-                formData.append('state', form.state.value);
-                formData.append('zipcode', form.zipcode.value.replace("&", "%26").replace("#", "%23"));
+                formData.append('address1', address1.replace("&", "%26").replace("#", "%23"));
+                formData.append('address2', address2.replace("&", "%26").replace("#", "%23"));
+                formData.append('city', city.replace("&", "%26").replace("#", "%23"));
+                formData.append('state', state);
+                formData.append('zipcode', zipcode.replace("&", "%26").replace("#", "%23"));
 
                 fetch('/api/validate-address',{
                     method: 'POST',
                     body: formData
                 }).then(resp => resp.json()).then(data => {
-                    if (data.address1 && data.address1.toLowerCase() != form.address1.value.toLowerCase()) {
-                        form.address1.value = data.address1;
+                    if (data.address1 && data.address1.toLowerCase() != address1.toLowerCase()) {
+                        setAddress1(data.address1);
                     }
-                    if (data.address2 && data.address2.toLowerCase() != form.address2.value.toLowerCase()) {
-                        form.address2.value = data.address2;
+                    if (data.address2 && data.address2.toLowerCase() != address2.toLowerCase()) {
+                        setAddress2(data.address2);
                     }
-                    if (data.city && data.city.toLowerCase() != form.city.value.toLowerCase()) {
-                        form.city.value = data.city;
+                    if (data.city && data.city.toLowerCase() != city.toLowerCase()) {
+                        setCity(data.city);
                     }
-                    if (data.state && data.state != form.state.value) {
-                        form.state.value = data.State;
+                    if (data.state && data.state != state) {
+                        setState(data.State);
                     }
-                    if (data.zipcode && data.zipcode != form.zipcode.value) {
-                        form.zipcode.value = data.zipcode;
+                    if (data.zipcode && data.zipcode != zipcode) {
+                        setZipcode(data.zipcode);
                     }
                     if (data.returnText || typeof data == 'string') {
                         setUspsResponse(data.returnText ?? data);
@@ -216,38 +232,42 @@ const Shop = () => {
                     }
 
                     if (uspsResponse === "") {
-                        addFulfillmentToOrder(form);
+                        addFulfillmentToOrder();
                         // add $6 fee for shipments
                         // setActiveKey("2")
                     }
-                }, error => console.log(error));
-            } else addFulfillmentToOrder(form);
+                }, error => setToast(error));
+            } else addFulfillmentToOrder();
         }
         setValidated(true);
     }
 
-    function addFulfillmentToOrder(form: HTMLFormElement) {
+    function addFulfillmentToOrder() {
         const request = {
-            displayName: form.displayName.value,
-            emailAddress: form.email.value,
-            phoneNumber: form.phone?.value,
-            address1: form.address1?.value,
-            address2: form.address2?.value,
-            city: form.city?.value,
-            state: form.state?.value,
-            zipcode: form.zipcode?.value,
+            displayName,
+            emailAddress,
+            phoneNumber,
+            address1,
+            address2,
+            city,
+            state,
+            zipcode,
+            fulfillment,
             version: order?.version,
             orderId: order?.id,
-            fulfillment: fulfillment
+            fulfillmentUid: ""
         }
+        if (order?.fulfillments) request.fulfillmentUid = order.fulfillments[0].uid!;
         fetch('/api/add-fulfillment', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(request)
-        }).then(resp => resp.json()).then((order: Order) => {
-            if (order) {
+        }).then(resp => resp.json()).then((data) => {
+            if (data.id) {
                 setOrder(order);
                 setActiveKey("2");
+            } else {
+                setToast(data[0].detail);
             }
         });
     }
@@ -387,10 +407,10 @@ const Shop = () => {
                                         <Accordion.Body>
                                             <Row className="pb-3">
                                                 <Col>
-                                                    <Form.Select onChange={(event) => setFulfillment(event.currentTarget.value)}>
-                                                        <option value="">Select option</option>
-                                                        <option value="shipment">Ship - $6</option>
-                                                        <option value="pickup">Bout day pickup - Free</option>
+                                                    <Form.Select onChange={(e) => setFulfillment(e.currentTarget.value)}>
+                                                        <option value="" selected={fulfillment === ""} >Select option</option>
+                                                        <option value="shipment" selected={fulfillment === "shipment"}>Ship - $6</option>
+                                                        <option value="pickup" selected={fulfillment === "pickup"}>Bout day pickup - Free</option>
                                                     </Form.Select>
                                                 </Col>
                                             </Row>
@@ -398,19 +418,40 @@ const Shop = () => {
                                                 {fulfillment &&
                                                     <Row className="pb-3">
                                                         <Form.Group as={Col} className="py-1" xs="12" controlId="displayName">
-                                                            <Form.Control placeholder="Name" type="string" aria-label="displayName" required />
+                                                            <Form.Control
+                                                                placeholder="Name"
+                                                                type="string"
+                                                                aria-label="displayName"
+                                                                value={displayName}
+                                                                onChange={(e) => setDisplayName(e.currentTarget.value)}
+                                                                required
+                                                            />
                                                             <Form.Control.Feedback type="invalid">
                                                                 Please enter a name.
                                                             </Form.Control.Feedback>
                                                         </Form.Group>
                                                         <Form.Group as={Col} className="py-1" xs="12" controlId="email">
-                                                            <Form.Control placeholder="Email" type="email" aria-label="email" required />
+                                                            <Form.Control
+                                                                placeholder="Email"
+                                                                type="email"
+                                                                aria-label="email"
+                                                                value={emailAddress}
+                                                                onChange={(e) => setEmailAddress(e.currentTarget.value)}
+                                                                required
+                                                            />
                                                             <Form.Control.Feedback type="invalid">
                                                                 Please enter a valid email address.
                                                             </Form.Control.Feedback>
                                                         </Form.Group>
                                                         <Form.Group as={Col} className="py-1" xs="12" controlId="phone">
-                                                            <Form.Control placeholder="Phone" type="phone" aria-label="phone" pattern="/^[0-9()-]+$/" />
+                                                            <Form.Control
+                                                                placeholder="Phone"
+                                                                type="phone"
+                                                                aria-label="phone"
+                                                                value={phoneNumber}
+                                                                onChange={(e) => setPhoneNumber(e.currentTarget.value)}
+                                                                pattern="/^[0-9()-]+$/"
+                                                            />
                                                             <Form.Control.Feedback type="invalid">
                                                                 Please enter a valid phone number.
                                                             </Form.Control.Feedback>
@@ -420,25 +461,47 @@ const Shop = () => {
                                                 {fulfillment == "shipment" &&
                                                     <Row className="pb-3">
                                                         <Form.Group as={Col} className="py-1" xs="12" controlId="address1">
-                                                            <Form.Control placeholder="Address 1" required={fulfillment == "shipment"} type="string" />
+                                                            <Form.Control
+                                                                placeholder="Address 1"
+                                                                required={fulfillment == "shipment"}
+                                                                value={address1}
+                                                                onChange={(e) => setAddress1(e.currentTarget.value)}
+                                                                type="string"
+                                                            />
                                                             <Form.Control.Feedback type="invalid">
                                                                 Please enter a valid street address.
                                                             </Form.Control.Feedback>
                                                         </Form.Group>
                                                         <Form.Group as={Col} className="py-1" xs="12" controlId="address2">
-                                                            <Form.Control placeholder="Address 2" type="string" />
+                                                            <Form.Control
+                                                                placeholder="Address 2"
+                                                                type="string"
+                                                                value={address2}
+                                                                onChange={(e) => setAddress2(e.currentTarget.value)}
+                                                            />
                                                             <Form.Control.Feedback type="invalid">
                                                                 Please enter a valid unit number.
                                                             </Form.Control.Feedback>
                                                         </Form.Group>
                                                         <Form.Group as={Col} className="py-1" xs="12" controlId="city">
-                                                            <Form.Control placeholder="City" required={fulfillment == "shipment"} type="string" />
+                                                            <Form.Control
+                                                                placeholder="City"
+                                                                required={fulfillment == "shipment"}
+                                                                value={city}
+                                                                onChange={(e) => setCity(e.currentTarget.value)}
+                                                                type="string"
+                                                            />
                                                             <Form.Control.Feedback type="invalid">
                                                                 Please enter a valid city.
                                                             </Form.Control.Feedback>
                                                         </Form.Group>
                                                         <Form.Group as={Col} className="py-1" xs="6" controlId="state">
-                                                        <Form.Select placeholder="State" required={fulfillment == "shipment"}>
+                                                            <Form.Select
+                                                                placeholder="State"
+                                                                required={fulfillment == "shipment"}
+                                                                value={state}
+                                                                onChange={(e) => setState(e.currentTarget.value)}
+                                                            >
                                                             {states.map(state => 
                                                                 <option key={state} value={state}>{state}</option>
                                                             )}
@@ -448,7 +511,12 @@ const Shop = () => {
                                                             </Form.Control.Feedback>
                                                         </Form.Group>
                                                         <Form.Group as={Col} className="py-1" xs="6" controlId="zipcode">
-                                                            <Form.Control placeholder="Zipcode" type="string" />
+                                                            <Form.Control
+                                                                placeholder="Zipcode"
+                                                                type="string"
+                                                                value={zipcode}
+                                                                onChange={(e) => setZipcode(e.currentTarget.value)}
+                                                            />
                                                         </Form.Group>
                                                         <span className="ps-3">Address validation by www.usps.com</span>
                                                     </Row>
@@ -484,15 +552,12 @@ const Shop = () => {
                                                     }).then(resp => resp.json()).then(data => {
                                                         if (data.errors && data.errors.length > 0) {
                                                             if (data.errors[0].detail) {
-                                                                //window.showError(data.errors[0].detail);
-                                                                console.log(data.errors[0].detail);
+                                                                setToast(data.errors[0].detail);
                                                             } else {
-                                                                //window.showError('Payment Failed.');
-                                                                console.log('Payment Failed.');
+                                                                setToast('Payment Failed.');
                                                             }
                                                         } else {
-                                                            //window.showSuccess('Payment Successful!');
-                                                            console.log('Payment Successful!');
+                                                            setToast('Payment Successful!', true);
                                                             clearCart();
                                                         }
                                                     })
@@ -555,6 +620,20 @@ const Shop = () => {
                     </Button>
                 </Modal.Footer>
             </Modal>
+
+            <ToastContainer
+                className="p-5"
+                position="bottom-center"
+                style={{ zIndex: 1 }}
+            >
+                <Toast
+                    className={`${toastState} px-3 d-flex align-items-center justify-content-between`}
+                    show={showToast}
+                >
+                    <Toast.Body className="border-0">{error}</Toast.Body>
+                    <CloseButton onClick={() => setShowToast(false)} />
+                </Toast>
+            </ToastContainer>
         </Container>
     )
 }
