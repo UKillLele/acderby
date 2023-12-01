@@ -406,7 +406,7 @@ namespace acderby.Server.Controllers
         { 
             var fulfillments = new List<Fulfillment>();
             var serviceCharges = new List<OrderServiceCharge>();
-            var itemsToRemove = new List<string>();
+
             if (request.Fulfillment == "shipment")
             {
                 var amount = new Money(600, "USD");
@@ -425,7 +425,6 @@ namespace acderby.Server.Controllers
                 var pickupDetails = new FulfillmentPickupDetails(recipient, pickupAt: "3000-01-01");
                 var fulfillment = new Fulfillment(type: "PICKUP", pickupDetails: pickupDetails);
                 fulfillments.Add(fulfillment);
-                itemsToRemove.Add("service_charges");
             }
 
             var order = new Order.Builder(locationId: "LX5D3XC4CJ77A")
@@ -437,9 +436,9 @@ namespace acderby.Server.Controllers
 
             var body = new UpdateOrderRequest.Builder()
                 .Order(order)
-                .FieldsToClear(itemsToRemove)
                 .IdempotencyKey(Guid.NewGuid().ToString())
                 .Build();
+
             try
             {
                 var result = await _client.OrdersApi.UpdateOrderAsync(request.OrderId, body);

@@ -49,6 +49,7 @@ const Shop = () => {
     const [city, setCity] = useState("");
     const [state, setState] = useState("");
     const [zipcode, setZipcode] = useState("");    
+    const [fulfillmentSaved, setFulfillmentSaved] = useState(false);
 
     useEffect(() => {
         const page = window.location.pathname;
@@ -107,6 +108,7 @@ const Shop = () => {
         setItemQuantities(quantities);
 
         setFulfillment(order?.fulfillments && order.fulfillments[0].type ? order.fulfillments[0].type.toLowerCase() : "");
+        setFulfillmentSaved(order?.fulfillments != null);
 
         // populate form fields
         if (order?.fulfillments) {
@@ -255,17 +257,17 @@ const Shop = () => {
             fulfillment,
             version: order?.version,
             orderId: order?.id,
-            fulfillmentUid: ""
+            fulfillmentUid: order?.fulfillments && order?.fulfillments[0].type?.toLowerCase() != fulfillment ? order.fulfillments[0].uid : null // only set fulfillment to be recreated if type has changed
         }
-        if (order?.fulfillments) request.fulfillmentUid = order.fulfillments[0].uid!;
         fetch('/api/add-fulfillment', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(request)
         }).then(resp => resp.json()).then((data) => {
             if (data.id) {
-                setOrder(order);
+                setOrder(data);
                 setActiveKey("2");
+                document.cookie = `orderId=${data.id}`;
             } else {
                 setToast(data[0].detail);
             }
@@ -407,7 +409,7 @@ const Shop = () => {
                                         <Accordion.Body>
                                             <Row className="pb-3">
                                                 <Col>
-                                                    <Form.Select onChange={(e) => setFulfillment(e.currentTarget.value)}>
+                                                    <Form.Select onChange={(e) => setFulfillment(e.currentTarget.value)} disabled={fulfillmentSaved}>
                                                         <option value="" selected={fulfillment === ""} >Select option</option>
                                                         <option value="shipment" selected={fulfillment === "shipment"}>Ship - $6</option>
                                                         <option value="pickup" selected={fulfillment === "pickup"}>Bout day pickup - Free</option>
@@ -532,6 +534,11 @@ const Shop = () => {
                                                     <Col className="text-center">
                                                         <Button size="lg" className="px-5" hidden={!fulfillment} type="submit">{fulfillment === "shipment" && (!validated || uspsResponse != "") ? 'Verify' : 'Checkout'}</Button>
                                                     </Col>
+                                                    {fulfillmentSaved &&
+                                                        <Col>
+                                                            <Button size="lg" className="px-5 btn-danger" onClick={clearCart}>Restart</Button>
+                                                        </Col>
+                                                    }
                                                 </Row>
                                             </Form>
                                         </Accordion.Body>

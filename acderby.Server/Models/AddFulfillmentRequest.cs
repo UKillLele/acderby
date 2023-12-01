@@ -8,6 +8,5 @@
         public int Version { get; set; } = 0;
         public string OrderId {  get; set; } = string.Empty;
         public string Fulfillment { get; set; } = string.Empty;
-        public string? FulfillmentUid {  get; set; }
     }
 }
