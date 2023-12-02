@@ -1,6 +1,6 @@
 import { fileURLToPath, URL } from 'node:url';
 
-import { defineConfig, loadEnv } from 'vite';
+import { defineConfig } from 'vite';
 import plugin from '@vitejs/plugin-react';
 import fs from 'fs';
 import path from 'path';
@@ -37,8 +37,7 @@ if (!fs.existsSync(certFilePath) || !fs.existsSync(keyFilePath)) {
 }
 
 // https://vitejs.dev/config/
-export default defineConfig(({ mode }) => {
-    const env = loadEnv(mode, process.cwd());
+export default defineConfig(() => {
     return {
         plugins: [plugin()],
         resolve: {
@@ -49,7 +48,7 @@ export default defineConfig(({ mode }) => {
         server: {
             proxy: {
                 '^/api': {
-                    target: env.API_URL,
+                    target: 'https://localhost:7090',
                     secure: false
                 }
             },
