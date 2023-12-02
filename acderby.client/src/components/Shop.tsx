@@ -2,12 +2,7 @@ import { TokenResult } from "@square/web-payments-sdk-types";
 import { FormEvent, useEffect, useState } from "react";
 import { Accordion, Button, Card, CloseButton, Col, Container, Form, ListGroup, Modal, Row, Spinner, Toast, ToastContainer } from "react-bootstrap";
 import { PaymentForm, CreditCard } from "react-square-web-payments-sdk";
-import { CatalogObject, Client, Order, Environment } from "square";
-
-const client = new Client({
-    accessToken: import.meta.env.VITE_SQUARE_ACCESS_TOKEN,
-    environment: Environment.Sandbox
-});
+import { CatalogObject, Order, } from "square";
 
 const states = ["AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DE", "DC", "FL", "GA", "HI", "ID", "IL", "IN", "IA", "KS", "KY", "LA", "ME", "MD", "MA", "MI", "MN", "MS", "MO", "MT", "NE", "NV", "NH", "NJ", "NM", "NY", "NC", "ND", "OH", "OK", "OR", "PA", "RI", "SC", "SD", "TN", "TX", "UT", "VT", "VA", "WA", "WI", "WV", "WY"];
 
@@ -64,39 +59,21 @@ const Shop = () => {
                 }
             }, error => setToast(error));
         }
-        client.catalogApi.listCatalog(undefined, "CATEGORY").then(data => {
-            const { objects } = data.result;
-            if (objects) {
-                client.catalogApi.searchCatalogObjects({
-                    objectTypes: ['ITEM'],
-                    query: {
-                        exactQuery: {
-                            attributeName: 'category_id',
-                            attributeValue: objects.find(x => x.categoryData?.name === (page.includes("tickets") ? "Presale" : "Merchandise"))!.id
-                        }
+        
+        fetch(`/api/catalog?category=${page.split('/')[1]}`).then(resp => resp.json()).then((data) => {
+            if (data[0].detail) {
+                setToast(data[0].detail);
+                setLoading(false);
+            } else {
+                const images = data.filter(x => x.imageData);
+                const items = data.filter(x => !x.imageData);
+                items.forEach(item => {
+                    if (item.itemData?.imageIds) {
+                        item.imageData = images.find(x => x.id === item.itemData?.imageIds![0])?.imageData;
                     }
-                }).then(catalogData => {
-                    const catalogObjects = catalogData.result.objects;
-                    if (catalogObjects) {
-                        client.catalogApi.listCatalog(undefined, "IMAGE").then(imageData => {
-                            const { objects: imageObjects } = imageData.result;
-                            catalogObjects.forEach(item => {
-                                if (item.itemData?.imageIds) {
-                                    item.imageData = imageObjects?.find(x => x.id === item.itemData?.imageIds![0])?.imageData;
-                                }
-                            })
-                            setCatalog(catalogObjects);
-                            setLoading(false);
-                        }, imageError => {
-
-                            setToast(imageError)
-                            setLoading(false);
-                        })
-                    }
-                }, catalogError => {
-                    setToast(catalogError)
-                    setLoading(false);
-                });
+                })
+                setCatalog(items);
+                setLoading(false);
             }
         }, categoryError => {
             setToast(categoryError)
@@ -162,9 +139,9 @@ const Shop = () => {
                 "Content-Type": 'application/json'
             },
             body: body
-        }).then(resp => resp.json()).then((order: Order) => {
+        }).then(resp => resp.json()).then((order) => {
             if (order.id) {
-            // set cookie so cart persists
+                // set cookie so cart persists
                 setOrder(order);
                 document.cookie = `orderId=${order.id}`;
             } else {
@@ -242,8 +219,6 @@ const Shop = () => {
 
                     if (uspsResponse === "") {
                         addFulfillmentToOrder();
-                        // add $6 fee for shipments
-                        // setActiveKey("2")
                     }
                 }, error => setToast(error));
             } else addFulfillmentToOrder();
@@ -558,7 +533,7 @@ const Shop = () => {
                                         <Accordion.Body>
                                             <PaymentForm
                                                 key={paymentKey}
-                                                applicationId={import.meta.env.VITE_SQUARE_APPLICATION_ID}
+                                                applicationId="sandbox-sq0idb--InZF0ZsRiB-k-oXZ2KvTg"
                                                 cardTokenizeResponseReceived={async (token: TokenResult) => {
                                                     const dataJsonString = JSON.stringify({ sourceId: token.token, order });
                                                     await fetch('api/process-payment', {
@@ -586,7 +561,7 @@ const Shop = () => {
                                                         label: "Total",
                                                     }
                                                 })}*/
-                                                locationId={import.meta.env.VITE_SQUARE_LOCATION_ID}
+                                                locationId="LX5D3XC4CJ77A"
                                             >
                                                 {/*<ApplePay />*/}
                                                 {/*<GooglePay />*/}

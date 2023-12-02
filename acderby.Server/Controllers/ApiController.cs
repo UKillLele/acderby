@@ -1,23 +1,18 @@
 ﻿using acderby.Server.Data;
 using acderby.Server.Models;
 using acderby.Server.ViewModels;
-using Azure;
 using Azure.Storage.Blobs;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Mono.TextTemplating;
+using NuGet.Packaging;
 using Square;
-using Square.Apis;
 using Square.Exceptions;
 using Square.Models;
-using System.Configuration;
 using System.Net;
 using System.Security.Claims;
 using System.Text.Json;
-using System.Text.Json.Nodes;
 using System.Xml.Linq;
-using static System.Net.WebRequestMethods;
 
 namespace acderby.Server.Controllers
 {
@@ -52,12 +47,6 @@ namespace acderby.Server.Controllers
                 .Environment(Square.Environment.Sandbox)
                 .AccessToken(configuration.GetValue<string>("ConnectionStrings:SquareAccessToken"))
                 .Build();
-        }
-
-        [HttpGet]
-        public ActionResult Get()
-        {
-            return Ok();
         }
 
         [HttpGet]
@@ -335,6 +324,48 @@ namespace acderby.Server.Controllers
                     return BadRequest(ex.Errors);
                 }
             }
+        }
+
+        [HttpGet]
+        [Route("catalog")]
+        public async Task<ActionResult> GetCatalogAsync([FromQuery] string category)
+        {
+            IList<CatalogObject> categories;
+            try
+            {
+                var response = await _client.CatalogApi.ListCatalogAsync(null, "CATEGORY");
+                categories = response.Objects;
+            }
+            catch (ApiException ex)
+            {
+                return BadRequest(ex.Errors);
+            }
+
+            IList<CatalogObject> items;
+            try
+            {
+                var objectTypes = new List<string>(["ITEM"]);
+                var exactQuery = new CatalogQueryExact("category_id", categories.FirstOrDefault(x => x.CategoryData?.Name == (category == "tickets" ? "Presale" : "Merchandise"))?.Id);
+                var query = new CatalogQuery(exactQuery: exactQuery);
+                var response = await _client.CatalogApi.SearchCatalogObjectsAsync(new SearchCatalogObjectsRequest(objectTypes: objectTypes, query: query));
+                items = response.Objects;
+            }
+            catch (ApiException ex)
+            {
+                return BadRequest(ex.Errors);
+            }
+
+            try
+            {
+                var response = await _client.CatalogApi.ListCatalogAsync(null, "IMAGE");
+                items.AddRange(response.Objects);
+            }
+            catch (ApiException ex)
+            {
+                return BadRequest(ex.Errors);
+            }
+            
+            return Ok(items);
         }
 
         [HttpGet]
