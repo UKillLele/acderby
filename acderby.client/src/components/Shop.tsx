@@ -50,13 +50,18 @@ const Shop = () => {
     const [state, setState] = useState("");
     const [zipcode, setZipcode] = useState("");    
     const [fulfillmentSaved, setFulfillmentSaved] = useState(false);
+    const [paymentKey, setPaymentKey] = useState(Math.floor(Math.random() * 1000));
 
     useEffect(() => {
         const page = window.location.pathname;
         const orderId = document.cookie.split('; ').find(x => x.startsWith('orderId'))?.split('=')[1];
         if (orderId) {
             fetch(`/api/order/${orderId}`).then(resp => resp.json()).then(data => {
-                setOrder(data);
+                if (data.id) {
+                    setOrder(data);
+                } else {
+                    setToast(data[0].detail);
+                }
             }, error => setToast(error));
         }
         client.catalogApi.listCatalog(undefined, "CATEGORY").then(data => {
@@ -158,10 +163,12 @@ const Shop = () => {
             },
             body: body
         }).then(resp => resp.json()).then((order: Order) => {
-            if (order) {
-                // set cookie so cart persists
+            if (order.id) {
+            // set cookie so cart persists
                 setOrder(order);
                 document.cookie = `orderId=${order.id}`;
+            } else {
+                setToast(order[0].detail);
             }
         }, error => setToast(error));
     }
@@ -279,6 +286,7 @@ const Shop = () => {
         form.reset();
         document.cookie = 'orderId=';
         setOrder(undefined);
+        setPaymentKey(Math.floor(Math.random() * 1000));
     }
 
     return (
@@ -549,6 +557,7 @@ const Shop = () => {
                                         </Accordion.Header>
                                         <Accordion.Body>
                                             <PaymentForm
+                                                key={paymentKey}
                                                 applicationId={import.meta.env.VITE_SQUARE_APPLICATION_ID}
                                                 cardTokenizeResponseReceived={async (token: TokenResult) => {
                                                     const dataJsonString = JSON.stringify({ sourceId: token.token, order });
