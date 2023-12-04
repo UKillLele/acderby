@@ -5,6 +5,7 @@ using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.Filters;
 using Azure.Identity;
 using Microsoft.Extensions.Azure;
+using acderby.Server.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -44,6 +45,8 @@ builder.Services.AddAzureClients(x =>
     x.AddBlobServiceClient(new Uri("https://acrdphotos.blob.core.windows.net"));
     x.UseCredential(new DefaultAzureCredential());
 });
+
+builder.Services.AddTransient<IEmailSender, EmailSender>();
 
 
 var app = builder.Build();

@@ -1,18 +1,31 @@
 ﻿using acderby.Server.Data;
 using acderby.Server.Models;
+using acderby.Server.Services;
 using acderby.Server.ViewModels;
+using Azure.Core;
 using Azure.Storage.Blobs;
+using Humanizer.Bytes;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using MimeKit;
 using NuGet.Packaging;
+using QRCoder;
 using Square;
 using Square.Exceptions;
 using Square.Models;
+using System.Drawing;
+using System.Drawing.Imaging;
 using System.Net;
+using System.Net.Mail;
+using System.Net.Mime;
+using System.Reflection;
 using System.Security.Claims;
+using System.Text;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using System.Xml.Linq;
+
 
 namespace acderby.Server.Controllers
 {
@@ -27,18 +40,21 @@ namespace acderby.Server.Controllers
         private readonly BlobContainerClient _blobContainerClient;
         private readonly JsonSerializerOptions _jsonOptions = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
         private readonly SquareClient _client;
+        private readonly IEmailSender _emailSender;
 
         public ApiController(
             ILogger<ApiController> logger,
             ApplicationDbContext context,
             IHttpContextAccessor contextAccessor,
             BlobServiceClient blobServiceClient,
-            Microsoft.Extensions.Configuration.IConfiguration configuration)
+            Microsoft.Extensions.Configuration.IConfiguration configuration,
+            IEmailSender emailSender)
         {
             _logger = logger;
             _context = context;
             _contextAccessor = contextAccessor;
             _configuration = configuration;
+            _emailSender = emailSender;
 
             _blobContainerClient = blobServiceClient.GetBlobContainerClient("photos");
 
@@ -234,6 +250,56 @@ namespace acderby.Server.Controllers
                 try
                 {
                     var response = await _client.PaymentsApi.CreatePaymentAsync(createPaymentRequest);
+                    var fulfillment = request.Order?.Fulfillments[0].Type == "PICKUP" ? request.Order.Fulfillments[0].PickupDetails.Recipient : request.Order?.Fulfillments[0].ShipmentDetails.Recipient;
+                    if (fulfillment != null)
+                    {
+                        QRCodeGenerator qrGenerator = new();
+                        QRCodeData qrCodeData = qrGenerator.CreateQrCode(request.Order?.Id, QRCodeGenerator.ECCLevel.Q);
+                        PngByteQRCode qrCode = new(qrCodeData);
+                        byte[] qrCodeAsPngByteArr = qrCode.GetGraphic(20);
+                        using var ms = new MemoryStream(qrCodeAsPngByteArr);
+                        var image = new LinkedResource(ms, MediaTypeNames.Image.Png)
+                        {
+                            ContentId = "QRCode.png",
+                            TransferEncoding = TransferEncoding.Base64,
+                            ContentLink = new Uri("cid:" + "QRCode.png")
+                        };
+                        image.ContentType.Name = image.ContentId;
+
+                        var items = new StringBuilder();
+                        if (request.Order != null)
+                        {
+                            foreach (var item in request.Order.LineItems)
+                            {
+                                items.Append($"<li>{item.Name} x {item.Quantity} @ ${item.BasePriceMoney.Amount / 100}</li>");
+                            }
+                        }
+
+                        var template = System.IO.File.ReadAllText("Templates/receipt.html");
+                        template = template.Replace("{DisplayName}", fulfillment.DisplayName);
+                        template = template.Replace("{Items}", items.ToString());
+                        template = template.Replace("{Discount}", request.Order?.TotalDiscountMoney != null ? $"Discounts: ${request.Order?.TotalDiscountMoney.Amount / 100}" : string.Empty);
+                        template = template.Replace("{ServiceFee}", request.Order?.TotalServiceChargeMoney != null ? $"Shipping: ${request.Order?.TotalServiceChargeMoney.Amount / 100}" : string.Empty);
+                        template = template.Replace("{Total}", $"${request.Order?.TotalMoney.Amount / 100}");
+                        template = template.Replace("{OrderId}", $"{request.Order?.Id}");
+                        template = template.Replace("{QRCode}", "<img src='cid:QRCode.png' height='300' width='300' alt='QRCode.png' />");
+
+                        AlternateView htmlView = AlternateView.CreateAlternateViewFromString(template, Encoding.UTF8, MediaTypeNames.Text.Html);
+                        htmlView.LinkedResources.Add(image);
+                        AlternateView plainView = AlternateView.CreateAlternateViewFromString(Regex.Replace(template, "<[^>]+?>", string.Empty), Encoding.UTF8, MediaTypeNames.Text.Plain);
+                        plainView.LinkedResources.Add(image);
+
+                        var message = new MailMessage("info@acderby.com", fulfillment.EmailAddress)
+                        {
+                            IsBodyHtml = true,
+                            DeliveryNotificationOptions = DeliveryNotificationOptions.OnFailure,
+                            Subject = "Assassination City Roller Derby Purchase Receipt",
+                        };
+                        message.AlternateViews.Add(plainView);
+                        message.AlternateViews.Add(htmlView);
+
+                        _emailSender.SendEmail(MimeMessage.CreateFromMailMessage(message));
+                    }
                     return new JsonResult(new { payment = response.Payment });
                 }
                 catch (ApiException e)

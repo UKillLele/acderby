@@ -620,6 +620,8 @@ const Shop = () => {
                 <Toast
                     className={`${toastState} px-3 d-flex align-items-center justify-content-between`}
                     show={showToast}
+                    delay={10000}
+                    autohide
                 >
                     <Toast.Body className="border-0">{error}</Toast.Body>
                     <CloseButton onClick={() => setShowToast(false)} />
