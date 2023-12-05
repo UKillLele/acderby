@@ -1,7 +1,6 @@
 ﻿using MailKit.Net.Smtp;
 using MailKit.Security;
 using MimeKit;
-using System.Configuration;
 
 
 namespace acderby.Server.Services

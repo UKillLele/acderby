@@ -10,8 +10,8 @@ const Layout = () => {
         if (role === "Admin" || role === "Editor") editor = true;
     }
     return (
-        <>
-            <Navbar expand="lg" data-bs-theme="dark">
+        <Container fluid className="bg-dark text-light page-bg" data-bs-theme="dark">
+            <Navbar expand="lg">
                 <Container className="fs-4">
                     <Navbar.Brand as={NavLink} to="/" className="d-lg-none">
                         <img alt="Assassination City Roller Derby"
@@ -64,7 +64,7 @@ const Layout = () => {
                                 />
                             </Navbar.Brand>
                             <Nav.Link as={NavLink} to="/shop" className="my-auto">Shop</Nav.Link>
-                            <Nav.Link as={NavLink} to="/training" className="my-auto">Training</Nav.Link>
+                            <Nav.Link as={NavLink} to="/join" className="my-auto">Join</Nav.Link>
                             <Nav.Link as={NavLink} to="/news" className="my-auto">News</Nav.Link>
                             <Nav.Link as={NavLink} to="/contact" className="my-auto">Contact</Nav.Link>
                         </Nav>
@@ -72,7 +72,7 @@ const Layout = () => {
                 </Container>
             </Navbar>
             <Outlet />
-        </>
+        </Container>
     )
 }
 

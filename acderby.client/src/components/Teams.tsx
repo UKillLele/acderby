@@ -26,9 +26,9 @@ const Teams = () => {
     }
 
     return (
-        <Container fluid className="content text-light" style={{ backgroundColor: team.color }}>
+        <Container fluid className="content" style={{ background: team.imageUrl ? `url(${team.imageUrl}) ${team.color}` : team.color, backgroundBlendMode: team.imageUrl && 'multiply', backgroundPosition: team.imageUrl && 'center', backgroundSize: team.imageUrl && 'cover' }}>
             <Container fluid className="px-0">
-                <Row className="header-img px-lg-5 mx-0" style={{ backgroundImage: team.imageUrl && `url(${team.imageUrl}` }}>
+                <Row className="header-img px-lg-5 mx-0">
                     <Row>
                         <Col className="my-auto">
                             <h1 className="xl-title my-5 text-shadow">{team.name}</h1>

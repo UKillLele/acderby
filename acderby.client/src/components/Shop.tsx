@@ -278,7 +278,7 @@ const Shop = () => {
                         <Row>
                             {catalog && catalog.map(item =>
                                 <Col xs md="6" lg="4" key={item.id} className="mt-3">
-                                    <Card>
+                                    <Card data-bs-theme="light">
                                         <Card.Img
                                             variant="top"
                                             className="img-fluid"
@@ -318,7 +318,7 @@ const Shop = () => {
                     <Col xs lg="4">
                         <Row>
                             <Col>
-                                <Accordion activeKey={activeKey} onSelect={(event) => event && setActiveKey(event.toString())}>
+                                <Accordion className="position-sticky" data-bs-theme="light" activeKey={activeKey} onSelect={(event) => event && setActiveKey(event.toString())}>
                                     <Accordion.Item eventKey="0">
                                         <Accordion.Header>
                                             Order {Number(order?.totalMoney?.amount) > 0 && <span className="ps-3">${Number(order?.totalMoney?.amount)/100}</span>}

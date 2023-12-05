@@ -16,7 +16,7 @@ import Tickets from './components/Tickets.tsx'
 import AboutLeague from './components/League.tsx'
 import Sponsors from './components/Sponsors.tsx'
 import News from './components/News.tsx'
-import Training from './components/Training.tsx'
+import Join from './components/Join.tsx'
 import Contact from './components/Contact.tsx'
 import Shop from './components/Shop.tsx'
 import Events from './components/Events.tsx'
@@ -40,7 +40,7 @@ const router = createBrowserRouter(createRoutesFromElements(
         <Route path="/tickets" element={<Tickets />} />
         <Route path="/sponsors" element={<Sponsors />} />
         <Route path="/news" element={<News />} />
-        <Route path="/training" element={<Training />} />
+        <Route path="/join" element={<Join />} />
         <Route path="/contact" element={<Contact />} />
         <Route path="/shop" element={<Shop />} />
         <Route path="/events" element={<Events />} />

@@ -38,7 +38,7 @@ const League = () => {
                         <Col>
                             <Row>
                                 <Col>
-                                    <h2 className="fs-1">History</h2>
+                                    <h2 className="fs-1 mb-5">History</h2>
                                 </Col>
                             </Row>
                             <Row>

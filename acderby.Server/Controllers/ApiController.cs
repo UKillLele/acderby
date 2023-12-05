@@ -298,7 +298,14 @@ namespace acderby.Server.Controllers
                         message.AlternateViews.Add(plainView);
                         message.AlternateViews.Add(htmlView);
 
-                        _emailSender.SendEmail(MimeMessage.CreateFromMailMessage(message));
+                        try
+                        {
+                            _emailSender.SendEmail(MimeMessage.CreateFromMailMessage(message));
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine(ex.ToString());
+                        }
                     }
                     return new JsonResult(new { payment = response.Payment });
                 }
