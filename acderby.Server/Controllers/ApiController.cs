@@ -60,7 +60,7 @@ namespace acderby.Server.Controllers
 
             _client = new SquareClient
                 .Builder()
-                .Environment(Square.Environment.Sandbox)
+                .Environment(Square.Environment.Production)
                 .AccessToken(configuration.GetValue<string>("ConnectionStrings:SquareAccessToken"))
                 .Build();
         }
@@ -356,7 +356,7 @@ namespace acderby.Server.Controllers
               .AutoApplyDiscounts(true)
               .Build();
 
-            var order = new Order.Builder(locationId: "LX5D3XC4CJ77A")
+            var order = new Order.Builder(locationId: _configuration.GetValue<string>("ConnectionStrings:SquareLocationId"))
               .LineItems(lineItems)
               .PricingOptions(pricingOptions)
               .Version(request.Version)
@@ -531,7 +531,7 @@ namespace acderby.Server.Controllers
                 fulfillments.Add(fulfillment);
             }
 
-            var order = new Order.Builder(locationId: "LX5D3XC4CJ77A")
+            var order = new Order.Builder(locationId: _configuration.GetValue<string>("ConnectionStrings:SquareLocationId"))
               .Version(request.Version)
               .Fulfillments(fulfillments)
               .ServiceCharges(serviceCharges)

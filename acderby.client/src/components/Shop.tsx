@@ -392,10 +392,10 @@ const Shop = () => {
                                         <Accordion.Body>
                                             <Row className="pb-3">
                                                 <Col>
-                                                    <Form.Select onChange={(e) => setFulfillment(e.currentTarget.value)} disabled={fulfillmentSaved}>
-                                                        <option value="" selected={fulfillment === ""} >Select option</option>
-                                                        <option value="shipment" selected={fulfillment === "shipment"}>Ship - $6</option>
-                                                        <option value="pickup" selected={fulfillment === "pickup"}>Bout day pickup - Free</option>
+                                                    <Form.Select onChange={(e) => setFulfillment(e.currentTarget.value)} disabled={fulfillmentSaved} value={fulfillment}>
+                                                        <option value="" >Select option</option>
+                                                        <option value="shipment">Ship - $6</option>
+                                                        <option value="pickup">Bout day pickup - Free</option>
                                                     </Form.Select>
                                                 </Col>
                                             </Row>
@@ -533,7 +533,7 @@ const Shop = () => {
                                         <Accordion.Body>
                                             <PaymentForm
                                                 key={paymentKey}
-                                                applicationId="sandbox-sq0idb--InZF0ZsRiB-k-oXZ2KvTg"
+                                                applicationId="sq0idp-BXIl-QUxiAsKZDxLImqRsg"
                                                 cardTokenizeResponseReceived={async (token: TokenResult) => {
                                                     const dataJsonString = JSON.stringify({ sourceId: token.token, order });
                                                     await fetch('api/process-payment', {
@@ -561,7 +561,7 @@ const Shop = () => {
                                                         label: "Total",
                                                     }
                                                 })}*/
-                                                locationId="LX5D3XC4CJ77A"
+                                                locationId="7PS8GHVEB4J0R"
                                             >
                                                 {/*<ApplePay />*/}
                                                 {/*<GooglePay />*/}
