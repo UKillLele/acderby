@@ -2,7 +2,7 @@ import { Container, Row, Col, Form, Image, Button, Spinner } from 'react-bootstr
 import { Person } from '../models/Person';
 import { ChangeEvent, FormEvent, useEffect, useState } from 'react';
 import { GetPositionDisplayName, GetPositionsArray, Position, PositionType } from '../models/Position';
-import Team from '../models/Team';
+import { Team } from '../models/Team';
 
 const Players = () => {
     const [players, setPlayers] = useState<Person[]>([]);

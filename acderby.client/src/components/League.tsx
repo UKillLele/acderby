@@ -10,8 +10,8 @@ const League = () => {
                 </Col>
             </Row>
             <Row className="my-5">   
-                <Col xs lg="6" className="bg-black text-light p-5 d-flex align-items-center">
-                    <Row className="me-5">
+                <Col xs="12" lg="6" className="bg-black text-light p-5 d-flex align-items-center">
+                    <Row className="me-lg-5">
                         <Col>
                             <Row>
                                 <Col>
@@ -33,8 +33,8 @@ const League = () => {
                 </Col>
             </Row>
             <Row className="my-5">
-                <Col className="bg-black text-light p-5 d-flex align-items-center">
-                    <Row className="ms-5">
+                <Col xs="12" lg="6" className="bg-black text-light p-5 d-flex align-items-center">
+                    <Row className="ms-lg-5">
                         <Col>
                             <Row>
                                 <Col>
@@ -52,13 +52,13 @@ const League = () => {
                         </Col>
                     </Row>
                 </Col>
-                <Col lg={{ order: 'first' }} className="overlap-right d-flex align-items-center">
+                <Col lg={{ order: 'first' }} className="overlap-right align-items-center d-flex">
                     <Image fluid src="https://acrdphotos.blob.core.windows.net/photos/kennedy.jpg"></Image>
                 </Col>
             </Row>
             <Row className="my-5">
                 <Col xs lg="6" className="bg-black text-light p-5 d-flex align-items-center">
-                    <Row className="me-5">
+                    <Row className="me-lg-5">
                         <Col>
                             <Row>
                                 <Col>
@@ -80,7 +80,7 @@ const League = () => {
                         </Col>
                     </Row>
                 </Col>
-                <Col xs lg="6" className="overlap-left d-flex align-items-center">
+                <Col lg="6" className="overlap-left d-flex align-items-center">
                     <Image fluid src="https://acrdphotos.blob.core.windows.net/photos/dk-lr.jpg"></Image>
                 </Col>
             </Row>

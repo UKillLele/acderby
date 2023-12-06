@@ -274,10 +274,10 @@ const Shop = () => {
                 </Container>
             :
                 <Row className="p-5">
-                    <Col>
+                    <Col xs="12" lg className="mb-3">
                         <Row>
                             {catalog && catalog.map(item =>
-                                <Col xs md="6" lg="4" key={item.id} className="mt-3">
+                                <Col xs="12" md="6" lg="4" key={item.id} className="mt-3">
                                     <Card data-bs-theme="light">
                                         <Card.Img
                                             variant="top"
@@ -315,7 +315,7 @@ const Shop = () => {
                             )}
                         </Row>
                     </Col>
-                    <Col xs lg="4">
+                    <Col xs={{order: 'first'}} lg="4" >
                         <Row>
                             <Col>
                                 <Accordion className="position-sticky" data-bs-theme="light" activeKey={activeKey} onSelect={(event) => event && setActiveKey(event.toString())}>

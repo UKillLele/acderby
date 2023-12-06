@@ -1,5 +1,5 @@
 import { useLoaderData } from 'react-router-dom'
-import Team from '../models/Team'
+import { Team } from '../models/Team'
 import { Container, Row, Col, Image } from 'react-bootstrap'
 import { Person } from '../models/Person'
 import '../styles/Teams.scss'
@@ -26,7 +26,7 @@ const Teams = () => {
     }
 
     return (
-        <Container fluid className="content" style={{ background: team.imageUrl ? `url(${team.imageUrl}) ${team.color}` : team.color, backgroundBlendMode: team.imageUrl && 'multiply', backgroundPosition: team.imageUrl && 'center', backgroundSize: team.imageUrl && 'cover' }}>
+        <Container fluid className="content" style={{ background: team.imageUrl ? `url(${team.imageUrl}) ${team.color}` : team.color, backgroundBlendMode: team.imageUrl && 'multiply', backgroundPosition: 'center', backgroundSize: 'cover' }}>
             <Container fluid className="px-0">
                 <Row className="header-img px-lg-5 mx-0">
                     <Row>

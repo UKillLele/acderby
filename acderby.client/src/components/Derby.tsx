@@ -11,7 +11,7 @@ const Derby = () => {
             </Row>
             <Row className="my-5">
                 <Col xs lg="6" className="bg-black text-light p-5 d-flex align-items-center">
-                    <Row className="me-5">
+                    <Row className="me-lg-5">
                         <Col>
                             <Row>
                                 <Col>
@@ -36,7 +36,7 @@ const Derby = () => {
                 </Col>
             </Row>
             <Row>
-                <Col>
+                <Col xs="12" lg className="mb-3">
                     <Card className="bg-black text-light h-100">
                         <Card.Body>
                             <Card.Title className="fs-2 mb-3">POSITIONS</Card.Title>
@@ -49,7 +49,7 @@ const Derby = () => {
                         </Card.Body>
                     </Card>
                 </Col>
-                <Col>
+                <Col xs="12" lg className="mb-3">
                     <Card className="bg-black text-light h-100">
                         <Card.Body>
                             <Card.Title className="fs-2 mb-3">TYPES OF BLOCKING</Card.Title>
@@ -63,7 +63,7 @@ const Derby = () => {
                         </Card.Body>
                     </Card>
                 </Col>
-                <Col>
+                <Col xs="12" lg className="mb-3">
                     <Card className="bg-black text-light h-100">
                         <Card.Body>
                             <Card.Title className="fs-2 mb-3">COMMON PENALTIES</Card.Title>
@@ -78,7 +78,7 @@ const Derby = () => {
                         </Card.Body>
                     </Card>
                 </Col>
-                <Col>
+                <Col xs="12" lg className="mb-3">
                     <Card className="bg-black text-light h-100">
                         <Card.Body>
                             <Card.Title className="fs-2 mb-3">GLOSSARY</Card.Title>
@@ -96,7 +96,7 @@ const Derby = () => {
             </Row>
             <Row className="my-5">
                 <Col className="bg-black text-light p-5 d-flex align-items-center">
-                    <Row className="ms-5">
+                    <Row className="ms-lg-5">
                         <Col>
                             <p className="fs-3">Gameplay</p>
                             <ul>

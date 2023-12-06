@@ -17,7 +17,7 @@
 
     .overlap-right {
         margin: 20px -100px 20px 100px;
-        z-index: 5;
+        z-index: 2;
     }
 
     .video {
@@ -38,8 +38,8 @@
 }
 
 @include media-breakpoint-down(lg) {
-    .overlap-left .overlap-right {
-        display: none;
+    .overlap-left, .overlap-right {
+        margin: -50px 0 50px 0;
     }
 
     .video {
@@ -69,9 +69,9 @@
 }
 
 .navbar {
-    position: absolute;
     width: 100%;
     background-color: rgb(0, 0, 0, 0.75);
+    padding: 0;
 }
 
 .page-bg {
@@ -81,15 +81,17 @@
 }
 
 .page-loader {
-    height: calc(100vh - 190px);
+    height: calc(100vh - 180px);
     display: flex;
     align-items: center;
     justify-content:  center;
     padding: 0;
 }
 .content {
-    padding-top: 140px;
+    padding-top: 130px;
+    margin-top: -130px;
     padding-bottom: 50px;
+    margin-bottom: 0;
 }
 
 .bg-img {
