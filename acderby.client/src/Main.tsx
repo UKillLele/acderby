@@ -20,7 +20,7 @@ import Join from './components/Join.tsx'
 import Contact from './components/Contact.tsx'
 import Shop from './components/Shop.tsx'
 import Events from './components/Events.tsx'
-import SeasonSchedule from './components/Events.tsx'
+import SeasonSchedule from './components/SeasonSchedule.tsx'
 import Derby from './components/Derby.tsx'
 import Login from './components/Login.tsx'
 import Players from './components/Players.tsx'
@@ -44,7 +44,11 @@ const router = createBrowserRouter(createRoutesFromElements(
         <Route path="/contact" element={<Contact />} />
         <Route path="/shop" element={<Shop />} />
         <Route path="/events" element={<Events />} />
-        <Route path="/season" element={<SeasonSchedule />} />
+        <Route
+            path="/season"
+            element={<SeasonSchedule />}
+            loader={async () => { return fetch(`/api/bouts`) }}
+        />
         <Route path="/login" element={<Login />} />
         <Route element={<EditorRoutes />} >
             <Route path="/players" element={<Players />} />

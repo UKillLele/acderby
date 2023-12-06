@@ -27,6 +27,14 @@
     .xl-title {
         font-size: 5rem;
     }
+
+    .vs {
+        margin: 0 -50px;
+    }
+
+    .bout-bg {
+        height: 300px;
+    }
 }
 
 @include media-breakpoint-down(lg) {
@@ -41,6 +49,19 @@
     .xl-title {
         font-size: 4rem;
     }
+
+    .vs {
+        margin: -35px 0;
+    }
+
+    .bout-bg {
+        height: 100px;
+    }
+}
+
+.vs {
+    z-index: 2;
+    text-align: center;
 }
 
 .video {

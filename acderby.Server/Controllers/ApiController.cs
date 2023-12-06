@@ -2,9 +2,7 @@
 using acderby.Server.Models;
 using acderby.Server.Services;
 using acderby.Server.ViewModels;
-using Azure.Core;
 using Azure.Storage.Blobs;
-using Humanizer.Bytes;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -14,12 +12,9 @@ using QRCoder;
 using Square;
 using Square.Exceptions;
 using Square.Models;
-using System.Drawing;
-using System.Drawing.Imaging;
 using System.Net;
 using System.Net.Mail;
 using System.Net.Mime;
-using System.Reflection;
 using System.Security.Claims;
 using System.Text;
 using System.Text.Json;
@@ -231,6 +226,17 @@ namespace acderby.Server.Controllers
                 return Ok();
             }
             return BadRequest("Person does not exist in database");
+        }
+
+        [HttpGet]
+        [Route("bouts")]
+        public ActionResult GetBouts()
+        {
+            var bouts = _context.Bouts
+                .Include(x => x.HomeTeam)
+                .Include(x => x.AwayTeam);
+            var grouped = bouts.OrderBy(x => x.Date).GroupBy(x => x.Date.Date).ToList();
+            return Ok(grouped);
         }
 
         [HttpPost]

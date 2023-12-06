@@ -1,5 +1,5 @@
 import { Person } from "./Person";
-import Team from "./Team";
+import { Team } from "./Team";
 
 export interface Position {
     person: Person | null,

@@ -1,6 +1,6 @@
 import { Position } from "./Position";
 
-export default interface Team {
+export interface Team {
     id: string,
     name: string,
     description: string,

@@ -117,7 +117,7 @@ const Derby = () => {
                             </ul>
                             <p className="fs-3">Still confused?</p>
                             <p>It's a lot to take in. Don't be shy. You can ask your neighbor or any of the skaters carrying around "ASK ME"" signs. We love to talk derby. Just focus on the hits, watch the jammers (they usually are on the receiving end of most hits), and build a beer-a-mid or two.</p>
-                            <p>You can also see a <a href="www.wftda.com/rules﻿" target="_blank">complete list of rules</a>﻿</p>
+                            <p>You can also see a <a href="www.wftda.com/rules﻿" target="_blank" rel="noopener">complete list of rules</a>﻿</p>
                         </Col>
                     </Row>
                 </Col>

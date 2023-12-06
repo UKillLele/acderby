@@ -1,7 +1,7 @@
 import { Container, Row, Col } from "react-bootstrap"
 
 
-const SeasonSchedule = () => {
+const Events = () => {
     return (
         <Container fluid className="content bg-dark text-light">
             <Row className="m-5 align-items-center">
@@ -15,8 +15,13 @@ const SeasonSchedule = () => {
                     <p>Want us to come to your event? We'd love to! <a href="mailto:marketing@acderby.com?subject=Event" target="_blank" rel="noopener">Let us know</a></p>
                 </Col>
             </Row>
+            <Row className="m-5">
+                <Col>
+                    <p>No upcoming events currently scheduled.</p>
+                </Col>
+            </Row>
         </Container>
     )
 }
 
-export default SeasonSchedule
+export default Events
