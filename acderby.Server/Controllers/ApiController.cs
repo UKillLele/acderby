@@ -55,7 +55,7 @@ namespace acderby.Server.Controllers
 
             _client = new SquareClient
                 .Builder()
-                .Environment(Square.Environment.Production)
+                .Environment(Square.Environment.Sandbox)
                 .AccessToken(configuration.GetValue<string>("ConnectionStrings:SquareAccessToken"))
                 .Build();
         }

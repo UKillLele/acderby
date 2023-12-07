@@ -315,7 +315,7 @@ const Shop = () => {
                             )}
                         </Row>
                     </Col>
-                    <Col xs={{order: 'first'}} lg="4" >
+                    <Col xs={{ order: 'first' }} lg={{order: 'last', span: '4'}} >
                         <Row>
                             <Col>
                                 <Accordion className="position-sticky" data-bs-theme="light" activeKey={activeKey} onSelect={(event) => event && setActiveKey(event.toString())}>
@@ -533,7 +533,7 @@ const Shop = () => {
                                         <Accordion.Body>
                                             <PaymentForm
                                                 key={paymentKey}
-                                                applicationId="sq0idp-BXIl-QUxiAsKZDxLImqRsg"
+                                                applicationId="sandbox-sq0idb--InZF0ZsRiB-k-oXZ2KvTg" //"sq0idp-BXIl-QUxiAsKZDxLImqRsg"
                                                 cardTokenizeResponseReceived={async (token: TokenResult) => {
                                                     const dataJsonString = JSON.stringify({ sourceId: token.token, order });
                                                     await fetch('api/process-payment', {
@@ -561,7 +561,7 @@ const Shop = () => {
                                                         label: "Total",
                                                     }
                                                 })}*/
-                                                locationId="7PS8GHVEB4J0R"
+                                                locationId="LX5D3XC4CJ77A" //"7PS8GHVEB4J0R"
                                             >
                                                 {/*<ApplePay />*/}
                                                 {/*<GooglePay />*/}
