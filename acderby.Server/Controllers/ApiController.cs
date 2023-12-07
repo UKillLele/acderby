@@ -234,9 +234,11 @@ namespace acderby.Server.Controllers
         {
             var bouts = _context.Bouts
                 .Include(x => x.HomeTeam)
-                .Include(x => x.AwayTeam);
-            var grouped = bouts.OrderBy(x => x.Date).GroupBy(x => x.Date.Date).ToList();
-            return Ok(grouped);
+                .Include(x => x.AwayTeam)
+                .OrderBy(x => x.Date)
+                .GroupBy(x => x.Date.Date)
+                .ToList();
+            return Ok(bouts);
         }
 
         [HttpPost]
