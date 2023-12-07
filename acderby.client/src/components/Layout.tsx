@@ -33,7 +33,7 @@ const Layout = () => {
                             <NavDropdown title="About" className="my-auto">
                                 <NavDropdown.Item as={NavLink} to="/league">Our League</NavDropdown.Item>
                                 <NavDropdown.Item as={NavLink} to="/derby">Roller Derby</NavDropdown.Item>
-                                <NavDropdown.Item as={NavLink} to="/sponsors">Sponsors</NavDropdown.Item>
+                                {/*<NavDropdown.Item as={NavLink} to="/sponsors">Sponsors</NavDropdown.Item>*/}
                             </NavDropdown>
                             <NavDropdown title="Teams" className="my-auto">
                                 <NavDropdown.Header>Travel Team</NavDropdown.Header>
@@ -65,7 +65,7 @@ const Layout = () => {
                             </Navbar.Brand>
                             <Nav.Link as={NavLink} to="/shop" className="my-auto">Shop</Nav.Link>
                             <Nav.Link as={NavLink} to="/join" className="my-auto">Join</Nav.Link>
-                            <Nav.Link as={NavLink} to="/news" className="my-auto">News</Nav.Link>
+                            {/*<Nav.Link as={NavLink} to="/news" className="my-auto">News</Nav.Link>*/}
                             <Nav.Link as={NavLink} to="/contact" className="my-auto">Contact</Nav.Link>
                         </Nav>
                     </Navbar.Collapse>

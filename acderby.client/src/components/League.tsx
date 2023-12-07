@@ -1,4 +1,5 @@
-import { Col, Container, Row, Image } from "react-bootstrap"
+import { Col, Container, Row, Image, Accordion, ListGroup } from "react-bootstrap"
+import { Link } from "react-router-dom"
 
 
 const League = () => {
@@ -7,6 +8,47 @@ const League = () => {
             <Row className="m-5">
                 <Col className="my-auto">
                     <h1 className="xl-title my-5 text-shadow">Our League</h1>
+                </Col>
+            </Row>
+            <Row className="mx-5">
+                <Col>
+                    <Accordion data-bs-theme="light">
+                        <Accordion.Item eventKey="0">
+                            <Accordion.Header>FAQ</Accordion.Header>
+                            <Accordion.Body>
+                                <ListGroup>
+                                    <ListGroup.Item>
+                                        <p className="fw-bold">WHO OWNS and OPERATES THE LEAGUE?</p>
+                                        <p className="m-0">Assassination City Roller Derby is 100% skater-owned and -operated. Each skater has a part in running the business. From designing the flyers, to keeping the books, to wiping up beer during the bout - every skater donates her time and talents to the league on and off the track.</p>
+                                    </ListGroup.Item>
+                                    <ListGroup.Item>
+                                        <p className="fw-bold">DO SKATERS GET PAID?</p>
+                                        <p className="m-0">We wish - but no, we all play for the love of the sport and of each other. All of the revenue we take at the door and from sponsors goes back into the league by paying for practice time, uniforms, gear, and production costs.</p>
+                                    </ListGroup.Item>
+                                    <ListGroup.Item>
+                                        <p className="fw-bold">WHAT KIND OF PEOPLE PLAY ROLLER DERBY?</p>
+                                        <p className="m-0">ALL TYPES! Our skaters range from age 18 to age 50, from teeny-tiny to large-and-in-charge. We have teachers, librarians, artists, waitresses, doctors, scientists, engineers - all sorts.</p>
+                                    </ListGroup.Item>
+                                    <ListGroup.Item>
+                                        <p className="fw-bold">HOW DOES ROLLER DERBY WORK?</p>
+                                        <p className="m-0">Come to a bout and see, but also check out our <Link to="/derby">Derby 101.</Link></p>
+                                    </ListGroup.Item>
+                                    <ListGroup.Item>
+                                        <p className="fw-bold">DO YOU PUNCH PEOPLE OR BEAT PEOPLE UP?</p>
+                                        <p className="m-0">Even though roller derby is a full-contact sport, fighting is definitely off limits. Punching, kicking, and elbowing are serious no-nos, but sometimes a good body check feels about the same.</p>
+                                    </ListGroup.Item>
+                                    <ListGroup.Item>
+                                        <p className="fw-bold">DO YOU GET HURT?</p>
+                                        <p className="m-0">Yes, roller derby is a full-contact sport, and injuries are bound to happen. We train off-skates to minimize injury, learn how to fall and to take hits properly, and we wear head-to-toe safety gear every time we get out on the track, but it happens. Most common are bruises, muscle strains, and sprains, but broken bones and more serious injuries can and do occur.</p>
+                                    </ListGroup.Item>
+                                    <ListGroup.Item>
+                                        <p className="fw-bold">ISN'T ROLLER DERBY FAKED?</p>
+                                        <p className="m-0">Nope! (This is why punching will get you ejected from a game.)</p>
+                                    </ListGroup.Item>
+                                </ListGroup>
+                            </Accordion.Body>
+                        </Accordion.Item>
+                    </Accordion>
                 </Col>
             </Row>
             <Row className="my-5">   

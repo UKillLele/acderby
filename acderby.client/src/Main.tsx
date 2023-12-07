@@ -26,6 +26,7 @@ import Login from './components/Login.tsx'
 import Players from './components/Players.tsx'
 import EditorRoutes from './components/ProtectedRoute.tsx'
 import NotFound from './components/NotFound.tsx'
+import QuickLinks from './components/QuickLinks.tsx'
 
 const router = createBrowserRouter(createRoutesFromElements(
     <Route path="/" element={<Layout />}>
@@ -42,6 +43,7 @@ const router = createBrowserRouter(createRoutesFromElements(
         <Route path="/news" element={<News />} />
         <Route path="/join" element={<Join />} />
         <Route path="/contact" element={<Contact />} />
+        <Route path="/quick-links" element={<QuickLinks />} />
         <Route path="/shop" element={<Shop />} />
         <Route path="/events" element={<Events />} />
         <Route

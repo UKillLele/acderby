@@ -73,7 +73,7 @@ const SeasonSchedule = () => {
                     </Accordion>
                 </Col>
             </Row>
-            {bouts.map((date: Bout[], index: number) =>
+            {bouts.sort((a,b) => a > b ? 1 : -1).map((date: Bout[], index: number) =>
                 <Row className="m-5" key={date[0].date.toString()}>
                     <Col>
                         <Card data-bs-theme="light">
@@ -91,7 +91,7 @@ const SeasonSchedule = () => {
                                         </Col>
                                     </Row> 
                                 </Card.Title>
-                                {date.sort((a,b) => a > b ? 1 : -1).map((bout, i) =>
+                                {date.map((bout, i) =>
                                     <Row key={bout.date.toString()} className="align-items-center mb-2 text-light fw-bold text-shadow pb-2 text-center" style={{ borderBottom: i + 1 != date.length ? '1px solid black' : '' }}>
                                         <Col className="p-0 bout-bg" style={{ background: bout.homeTeam && `url(${bout.homeTeam.imageUrl})`, backgroundPosition: 'center', backgroundSize: 'cover' }}>
                                             <Container fluid style={{ backgroundColor: bout.homeTeam && bout.homeTeam.color }} className="m-0 h-100 d-flex align-items-center justify-content-center fs-1">

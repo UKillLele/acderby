@@ -1,8 +1,8 @@
-
+import QuickLinks from "./QuickLinks"
 
 const Contact = () => {
     return (
-        <div className="content">Contact</div>
+        <QuickLinks />
     )
 }
 
