@@ -257,7 +257,7 @@ namespace acderby.Server.Controllers
 
                 try
                 {
-                    var response = _client.PaymentsApi.CreatePayment(createPaymentRequest);
+                    var response = await _client.PaymentsApi.CreatePaymentAsync(createPaymentRequest);
                     var fulfillment = request.Order?.Fulfillments[0].Type == "PICKUP" ? request.Order.Fulfillments[0].PickupDetails.Recipient : request.Order?.Fulfillments[0].ShipmentDetails.Recipient;
                     if (fulfillment != null)
                     {
@@ -274,12 +274,12 @@ namespace acderby.Server.Controllers
                         };
                         image.ContentType.Name = image.ContentId;
 
-                        var items = new StringBuilder();
+                        string items = string.Empty;
                         if (request.Order != null)
                         {
                             foreach (var item in request.Order.LineItems)
                             {
-                                items.Append($"<li>{item.Name} x {item.Quantity} @ ${item.BasePriceMoney.Amount / 100}</li>");
+                                items += ($"<li>{item.Name} x {item.Quantity} @ ${item.BasePriceMoney.Amount / 100}</li>");
                             }
                         }
 
