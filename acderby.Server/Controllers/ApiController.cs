@@ -243,7 +243,7 @@ namespace acderby.Server.Controllers
 
         [HttpPost]
         [Route("process-payment")]
-        public Task<ActionResult> ProcessPayment(PaymentRequest request)
+        public ActionResult ProcessPayment(PaymentRequest request)
         {
             if (request != null)
             {
