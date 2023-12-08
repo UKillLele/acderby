@@ -285,7 +285,7 @@ namespace acderby.Server.Controllers
 
                         var template = System.IO.File.ReadAllText("Templates/receipt.html");
                         template = template.Replace("{DisplayName}", fulfillment.DisplayName);
-                        template = template.Replace("{Items}", items.ToString());
+                        template = template.Replace("{Items}", items);
                         template = template.Replace("{Discount}", request.Order?.TotalDiscountMoney != null ? $"Discounts: ${request.Order?.TotalDiscountMoney.Amount / 100}" : string.Empty);
                         template = template.Replace("{ServiceFee}", request.Order?.TotalServiceChargeMoney != null ? $"Shipping: ${request.Order?.TotalServiceChargeMoney.Amount / 100}" : string.Empty);
                         template = template.Replace("{Total}", $"${request.Order?.TotalMoney.Amount / 100}");
