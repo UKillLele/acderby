@@ -243,7 +243,7 @@ namespace acderby.Server.Controllers
 
         [HttpPost]
         [Route("process-payment")]
-        public async Task<ActionResult> ProcessPaymentAsync(PaymentRequest request)
+        public Task<ActionResult> ProcessPayment(PaymentRequest request)
         {
             if (request != null)
             {
@@ -257,7 +257,7 @@ namespace acderby.Server.Controllers
 
                 try
                 {
-                    var response = await _client.PaymentsApi.CreatePaymentAsync(createPaymentRequest);
+                    var response = _client.PaymentsApi.CreatePayment(createPaymentRequest);
                     var fulfillment = request.Order?.Fulfillments[0].Type == "PICKUP" ? request.Order.Fulfillments[0].PickupDetails.Recipient : request.Order?.Fulfillments[0].ShipmentDetails.Recipient;
                     if (fulfillment != null)
                     {
