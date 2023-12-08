@@ -257,9 +257,10 @@ namespace acderby.Server.Controllers
 
                 try
                 {
+                    CreatePaymentResponse response;
                     try
                     {
-                        var response = await _client.PaymentsApi.CreatePaymentAsync(createPaymentRequest);
+                        response = await _client.PaymentsApi.CreatePaymentAsync(createPaymentRequest);
                     }
                     catch (ApiException e)
                     {
