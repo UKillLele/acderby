@@ -257,7 +257,14 @@ namespace acderby.Server.Controllers
 
                 try
                 {
-                    var response = await _client.PaymentsApi.CreatePaymentAsync(createPaymentRequest);
+                    try
+                    {
+                        var response = await _client.PaymentsApi.CreatePaymentAsync(createPaymentRequest);
+                    }
+                    catch (ApiException e)
+                    {
+                        return new JsonResult(new { errors = e.Errors });
+                    }
                     var fulfillment = request.Order?.Fulfillments[0].Type == "PICKUP" ? request.Order.Fulfillments[0].PickupDetails.Recipient : request.Order?.Fulfillments[0].ShipmentDetails.Recipient;
                     if (fulfillment != null)
                     {
