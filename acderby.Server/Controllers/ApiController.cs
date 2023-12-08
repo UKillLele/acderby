@@ -36,6 +36,7 @@ namespace acderby.Server.Controllers
         private readonly JsonSerializerOptions _jsonOptions = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
         private readonly SquareClient _client;
         private readonly IEmailSender _emailSender;
+        private readonly IHostEnvironment _env;
 
         public ApiController(
             ILogger<ApiController> logger,
@@ -43,13 +44,15 @@ namespace acderby.Server.Controllers
             IHttpContextAccessor contextAccessor,
             BlobServiceClient blobServiceClient,
             Microsoft.Extensions.Configuration.IConfiguration configuration,
-            IEmailSender emailSender)
+            IEmailSender emailSender,
+            IHostEnvironment env)
         {
             _logger = logger;
             _context = context;
             _contextAccessor = contextAccessor;
             _configuration = configuration;
             _emailSender = emailSender;
+            _env = env;
 
             _blobContainerClient = blobServiceClient.GetBlobContainerClient("photos");
 
@@ -283,7 +286,7 @@ namespace acderby.Server.Controllers
                             }
                         }
 
-                        var template = System.IO.File.ReadAllText("Templates/receipt.html");
+                        var template = System.IO.File.ReadAllText(Path.Combine(_env.ContentRootPath, "Templates/receipt.html"));
                         template = template.Replace("{DisplayName}", fulfillment.DisplayName);
                         template = template.Replace("{Items}", items);
                         template = template.Replace("{Discount}", request.Order?.TotalDiscountMoney != null ? $"Discounts: ${request.Order?.TotalDiscountMoney.Amount / 100}" : string.Empty);
