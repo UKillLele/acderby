@@ -286,11 +286,11 @@ namespace acderby.Server.Controllers
                         var thanks = "<p>Thank you for supporting ACRD! Here's your order info:</p>";
                         var emailBottom = "<p>Sincerly,</p><p>UKillLele</p></div></body></html>";
                         var template = emailTop;
-                        template += $"<p>{fulfillment.DisplayName}</p>";
+                        template += $"<p>{fulfillment.DisplayName},</p>";
                         template += thanks;
                         template += $"<ul>{items}</ul>";
-                        template += request.Order?.TotalDiscountMoney != null ? $"<p>Discounts: ${request.Order?.TotalDiscountMoney.Amount / 100}</p>" : string.Empty;
-                        template += request.Order?.TotalServiceChargeMoney != null ? $"<p>Shipping: ${request.Order?.TotalServiceChargeMoney.Amount / 100}</p>" : string.Empty;
+                        template += request.Order?.TotalDiscountMoney != null && request.Order.TotalDiscountMoney.Amount > 0 ? $"<p>Discounts: ${request.Order?.TotalDiscountMoney.Amount / 100}</p>" : string.Empty;
+                        template += request.Order?.TotalServiceChargeMoney != null && request.Order.TotalServiceChargeMoney.Amount > 0 ? $"<p>Shipping: ${request.Order?.TotalServiceChargeMoney.Amount / 100}</p>" : string.Empty;
                         template += $"<p style='font-weight: bold'>Total: ${request.Order?.TotalMoney.Amount / 100}</p>";
                         template += $"<p>order #: {request.Order?.Id}</p>";
                         template += "<img src='cid:QRCode.png' height='300' width='300' alt='QRCode.png' />";
