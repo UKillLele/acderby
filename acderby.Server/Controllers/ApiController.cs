@@ -36,7 +36,6 @@ namespace acderby.Server.Controllers
         private readonly JsonSerializerOptions _jsonOptions = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
         private readonly SquareClient _client;
         private readonly IEmailSender _emailSender;
-        private readonly IHostEnvironment _env;
 
         public ApiController(
             ILogger<ApiController> logger,
@@ -44,15 +43,13 @@ namespace acderby.Server.Controllers
             IHttpContextAccessor contextAccessor,
             BlobServiceClient blobServiceClient,
             Microsoft.Extensions.Configuration.IConfiguration configuration,
-            IEmailSender emailSender,
-            IHostEnvironment env)
+            IEmailSender emailSender)
         {
             _logger = logger;
             _context = context;
             _contextAccessor = contextAccessor;
             _configuration = configuration;
             _emailSender = emailSender;
-            _env = env;
 
             _blobContainerClient = blobServiceClient.GetBlobContainerClient("photos");
 
@@ -285,15 +282,19 @@ namespace acderby.Server.Controllers
                                 items += ($"<li>{item.Name} x {item.Quantity} @ ${item.BasePriceMoney.Amount / 100}</li>");
                             }
                         }
-
-                        var template = System.IO.File.ReadAllText(Path.Combine(_env.ContentRootPath, "Templates/receipt.html"));
-                        template = template.Replace("{DisplayName}", fulfillment.DisplayName);
-                        template = template.Replace("{Items}", items);
-                        template = template.Replace("{Discount}", request.Order?.TotalDiscountMoney != null ? $"Discounts: ${request.Order?.TotalDiscountMoney.Amount / 100}" : string.Empty);
-                        template = template.Replace("{ServiceFee}", request.Order?.TotalServiceChargeMoney != null ? $"Shipping: ${request.Order?.TotalServiceChargeMoney.Amount / 100}" : string.Empty);
-                        template = template.Replace("{Total}", $"${request.Order?.TotalMoney.Amount / 100}");
-                        template = template.Replace("{OrderId}", $"{request.Order?.Id}");
-                        template = template.Replace("{QRCode}", "<img src='cid:QRCode.png' height='300' width='300' alt='QRCode.png' />");
+                        var emailTop = "<!DOCTYPE html><html><head><meta charset='utf-8' /><title></title></head><body><div style='padding: 10px'>";
+                        var thanks = "<p>Thank you for supporting ACRD! Here's your order info:</p>";
+                        var emailBottom = "<p>Sincerly,</p><p>UKillLele</p></div></body></html>";
+                        var template = emailTop;
+                        template += $"<p>{fulfillment.DisplayName}</p>";
+                        template += thanks;
+                        template += $"<ul>{items}</ul>";
+                        template += request.Order?.TotalDiscountMoney != null ? $"<p>Discounts: ${request.Order?.TotalDiscountMoney.Amount / 100}</p>" : string.Empty;
+                        template += request.Order?.TotalServiceChargeMoney != null ? $"<p>Shipping: ${request.Order?.TotalServiceChargeMoney.Amount / 100}</p>" : string.Empty;
+                        template += $"<p style='font-weight: bold'>Total: ${request.Order?.TotalMoney.Amount / 100}</p>";
+                        template += $"<p>order #: {request.Order?.Id}</p>";
+                        template += "<img src='cid:QRCode.png' height='300' width='300' alt='QRCode.png' />";
+                        template += emailBottom;
 
                         AlternateView htmlView = AlternateView.CreateAlternateViewFromString(template, Encoding.UTF8, MediaTypeNames.Text.Html);
                         htmlView.LinkedResources.Add(image);
