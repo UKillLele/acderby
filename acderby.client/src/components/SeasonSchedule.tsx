@@ -91,7 +91,7 @@ const SeasonSchedule = () => {
                                         </Col>
                                     </Row> 
                                 </Card.Title>
-                                {date.map((bout, i) =>
+                                {date.sort((a, b) => a.date > b.date ? 1 : -1).map((bout, i) =>
                                     <Row key={bout.date.toString()} className="align-items-center mb-2 text-light fw-bold text-shadow pb-2 text-center" style={{ borderBottom: i + 1 != date.length ? '1px solid black' : '' }}>
                                         <Col className="p-0 bout-bg" style={{ background: bout.homeTeam && `url(${bout.homeTeam.imageUrl})`, backgroundPosition: 'center', backgroundSize: 'cover' }}>
                                             <Container fluid style={{ backgroundColor: bout.homeTeam && bout.homeTeam.color }} className="m-0 h-100 d-flex align-items-center justify-content-center fs-1">
