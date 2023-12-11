@@ -73,7 +73,7 @@ const SeasonSchedule = () => {
                     </Accordion>
                 </Col>
             </Row>
-            {bouts.sort((a,b) => a > b ? 1 : -1).map((date: Bout[], index: number) =>
+            {bouts.map((date: Bout[], index: number) =>
                 <Row className="m-5" key={date[0].date.toString()}>
                     <Col>
                         <Card data-bs-theme="light">
